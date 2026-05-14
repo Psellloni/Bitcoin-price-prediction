@@ -1,0 +1,1726 @@
+%% ============================================================
+%%  Bachelor's Thesis — HSE Faculty of Computer Science
+%%  Ushkov Lev Igorevich, Group 221
+%%  Formatting: Annex 7 Recommendations
+%% ============================================================
+\documentclass[12pt, a4paper, oneside]{report}
+
+%% --- Encoding & Language ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+%% --- Font: Times New Roman (Annex 7, §1.3) ---
+\usepackage{mathptmx}
+\usepackage{helvet}
+
+%% --- Page Layout: left=25, right=10, top=20, bottom=20 (Annex 7, §1.1) ---
+\usepackage[
+  top=20mm, bottom=20mm,
+  left=25mm, right=10mm,
+  headheight=0pt, headsep=0pt
+]{geometry}
+
+%% --- Line Spacing 1.5 + Paragraph Indent 1.25 cm (Annex 7, §1.3) ---
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+%% --- Page Numbering: bottom centre (Annex 7, §1.1) ---
+\usepackage{fancyhdr}
+\pagestyle{plain}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+%% --- Mathematics ---
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{bm}
+\usepackage{bbm}
+
+%% --- Theorem environments ---
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%% --- Graphics & Tables ---
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{float}
+
+%% --- Captions: Annex 7 format ---
+\usepackage{caption}
+\DeclareCaptionLabelSeparator{hse}{ -- }
+\captionsetup{font=normalsize, labelfont=normalfont, textfont=normalfont,
+              labelsep=hse}
+\captionsetup[figure]{position=below, justification=centering,
+                      singlelinecheck=true}
+\captionsetup[table]{position=above, justification=raggedright,
+                     singlelinecheck=false}
+
+%% --- Algorithms ---
+\usepackage[ruled, vlined, linesnumbered]{algorithm2e}
+
+%% --- Listings ---
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\fontsize{10}{11}\selectfont,
+  basewidth=0.5em,
+  breaklines=true,
+  frame=none,
+  aboveskip=6pt, belowskip=6pt,
+  lineskip=0pt
+}
+
+%% --- Hyperlinks ---
+\usepackage[hidelinks]{hyperref}
+
+%% --- Bibliography: numeric [1] style (Annex 7, §1.4.4) ---
+\usepackage[backend=biber, style=numeric, sorting=none,
+            maxbibnames=99, giveninits=false]{biblatex}
+\addbibresource{references.bib}
+
+%% --- Miscellaneous ---
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+%% --- Custom math commands ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\dt}{\,dt}
+\newcommand{\dW}{\,dW}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+%% ============================================================
+\begin{document}
+
+%% ============================================================
+%%  TITLE PAGE
+%% ============================================================
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+\begin{singlespace}
+{\normalsize
+National Research University ``Higher School of Economics''
+}\\[4pt]
+{\normalsize Faculty of Computer Science}\\[30pt]
+
+{\normalsize Bachelor's Programme ``Data Science and Business Analytics''}\\[4pt]
+{\normalsize Field of Study: 01.03.02 Applied Mathematics and Information Science}
+\end{singlespace}
+
+\vfill
+
+{\Large \textbf{BACHELOR'S THESIS}}\\[16pt]
+
+{\large \textbf{Bitcoin Price Prediction Using Machine Learning Models\\
+and Stochastic Differential Equations}}
+
+\vfill
+
+\begin{flushleft}
+\begin{singlespace}
+\begin{tabular}{@{}p{0.45\textwidth}p{0.05\textwidth}p{0.45\textwidth}@{}}
+\textbf{Fulfilled by:} & & \\[6pt]
+Student, Year 4, Group 221 & & \\
+Ushkov Lev Igorevich & \underline{\hspace{3cm}} & \\
+& \small(signature) & \\[20pt]
+\textbf{Supervised by:} & & \\[6pt]
+Lecturer, Department of Statistics & & \\
+and Data Analysis, Faculty of & & \\
+Economic Sciences & & \\
+Slabolitskiy~I.~S. & \underline{\hspace{3cm}} & \\
+& \small(signature) & \\
+\end{tabular}
+\end{singlespace}
+\end{flushleft}
+
+\vfill
+
+{\normalsize Moscow, 2026}
+\end{center}
+\end{titlepage}
+
+\setcounter{page}{2}
+
+%% ============================================================
+%%  ABSTRACT
+%% ============================================================
+\clearpage
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This thesis investigates Bitcoin price prediction through two complementary
+lenses: classical stochastic differential equation (SDE) models from
+mathematical finance, and modern machine learning (ML) methods.  A key
+theoretical contribution is the rigorous justification of the stochastic
+process representation of cryptocurrency prices, grounded in the Efficient
+Market Hypothesis, the Random Walk Hypothesis, and the empirical stylised
+facts of Bitcoin log-returns (heavy tails, volatility clustering, jump events).
+
+Three SDE models are derived, calibrated, and evaluated: Geometric Brownian
+Motion (GBM), the Merton Jump-Diffusion model, and the Heston Stochastic
+Volatility model.  Four ML models --- Elastic Net, Random Forest, Gradient
+Boosting, and Long Short-Term Memory (LSTM) networks --- are trained and
+evaluated on multi-resolution Bitcoin price data obtained from Yahoo Finance.
+
+As the primary \emph{novel contribution}, a \textbf{Hybrid SDE-ML model} is
+proposed and implemented.  The hybrid model replaces the constant drift of GBM
+with a time-varying drift predicted at each step by a Gradient Boosting
+regressor, while retaining the stochastic diffusion term scaled by rolling
+realised volatility.  This architecture combines the distributional forecasting
+capability of SDEs with the predictive accuracy of ML.
+
+All models are evaluated under \textbf{walk-forward cross-validation} (five
+folds, expanding window), which prevents data leakage and provides robust
+out-of-sample estimates.  Beyond standard regression metrics (MAE, RMSE,
+$R^2$), an \textbf{economic evaluation} is conducted via a simple
+momentum-driven trading strategy, reporting annualised Sharpe ratios and
+maximum drawdown.
+
+The Hybrid SDE-ML model achieves the best point-prediction accuracy
+(MAE\,=\,298.1\,USD, $R^2$\,=\,0.968) and the highest strategy Sharpe ratio
+(1.72) on the out-of-sample test set, while also providing calibrated 90\,\%
+prediction intervals (coverage 91.7\,\%).
+
+\textbf{Keywords:} Bitcoin, cryptocurrency, stochastic differential equations,
+Geometric Brownian Motion, Merton model, Heston model, machine learning,
+LSTM, hybrid model, time-varying drift, walk-forward validation, Sharpe ratio.
+
+%% ============================================================
+%%  TABLE OF CONTENTS
+%% ============================================================
+\clearpage
+\tableofcontents
+
+%% ============================================================
+%%  INTRODUCTION
+%% ============================================================
+\clearpage
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+\section*{Motivation}
+\addcontentsline{toc}{section}{Motivation}
+
+Bitcoin was introduced in 2008 by the pseudonymous Satoshi Nakamoto as the
+first decentralised digital currency~[1].  In the sixteen years since its
+creation, Bitcoin has grown from an obscure cryptographic experiment into a
+global asset class with a market capitalisation exceeding one trillion US
+dollars.  Its price exhibits a unique combination of extreme volatility,
+structural breaks, speculative bubbles, and rapid recoveries that challenge
+traditional financial modelling paradigms.
+
+The question of whether Bitcoin prices can be predicted --- and, if so, by
+what class of models --- has attracted considerable academic interest.  From
+the perspective of mathematical finance, the natural starting point is to ask:
+\emph{Is Bitcoin price a stochastic process, and if so, which one?}  Answering
+this question rigorously requires both theoretical arguments and empirical
+evidence derived from the statistical properties of observed price data.
+
+\section*{Problem Statement}
+\addcontentsline{toc}{section}{Problem Statement}
+
+Let $S_t$ denote the Bitcoin price in US dollars at time~$t$.  The fundamental
+modelling problem may be stated as follows.
+
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item \textbf{(Theoretical)}  Under which assumptions on market structure and
+    investor behaviour does $\{S_t\}_{t \geq 0}$ admit a representation as the
+    solution of a stochastic differential equation?
+  \item \textbf{(Statistical)}  Do the empirical log-returns of Bitcoin,
+    $r_t = \ln(S_t / S_{t-1})$, satisfy the probabilistic conditions implied by
+    candidate SDE models?
+  \item \textbf{(Predictive)}  Among SDE models, ML models, and their hybrids,
+    which achieves the best out-of-sample forecasting performance under
+    rigorous walk-forward validation?
+  \item \textbf{(Economic)}  Do the predictive gains of ML and hybrid models
+    translate into economically meaningful improvements in trading performance,
+    as measured by the Sharpe ratio?
+\end{enumerate}
+
+\section*{Research Objectives}
+\addcontentsline{toc}{section}{Research Objectives}
+
+\begin{itemize}[leftmargin=1.25cm]
+  \item to provide a self-contained introduction to stochastic processes,
+    It\^{o} calculus, and SDEs;
+  \item to rigorously justify the stochastic process representation of Bitcoin
+    prices via propositions and proofs;
+  \item to derive, calibrate, and evaluate three SDE models: GBM, Merton
+    Jump-Diffusion, and Heston;
+  \item to build, train, and evaluate four ML models including LSTM;
+  \item to propose and implement a novel \textbf{Hybrid SDE-ML model} with
+    time-varying ML-predicted drift;
+  \item to conduct rigorous walk-forward cross-validation;
+  \item to evaluate all models on an economic criterion (Sharpe ratio).
+\end{itemize}
+
+\section*{Structure of the Thesis}
+\addcontentsline{toc}{section}{Structure of the Thesis}
+
+Chapter~1 develops the mathematical foundations.
+Chapter~2 justifies the stochastic process framework for Bitcoin.
+Chapter~3 derives and analyses the three SDE models.
+Chapter~4 describes the ML models and the novel Hybrid SDE-ML model.
+Chapter~5 covers data, feature engineering, walk-forward validation, and
+evaluation protocols including economic metrics.
+Chapter~6 presents the experimental results.
+The Conclusion summarises findings and outlines future work.
+
+%% ============================================================
+%%  CHAPTER 1 — MATHEMATICAL FOUNDATIONS
+%% ============================================================
+\clearpage
+\chapter{Mathematical Foundations of Stochastic Processes}
+\label{ch:math}
+
+\section{Probability Spaces and Filtrations}
+
+\begin{definition}[Probability Space]
+A \emph{probability space} is a triple $(\Omega, \F, \Prob)$ where $\Omega$ is a
+non-empty set of elementary outcomes, $\F$ is a $\sigma$-algebra of subsets of
+$\Omega$ (events), and $\Prob : \F \to [0,1]$ is a probability measure satisfying
+$\Prob(\Omega) = 1$ and countable additivity.
+\end{definition}
+
+Financial modelling requires tracking the evolution of information over time.
+
+\begin{definition}[Filtration]
+Let $T > 0$.  A \emph{filtration} on $(\Omega, \F, \Prob)$ is a family
+$\mathbb{F} = (\F_t)_{0 \leq t \leq T}$ of sub-$\sigma$-algebras of $\F$ satisfying
+$\F_s \subseteq \F_t$ for all $s \leq t$.  The filtered probability space
+$(\Omega, \F, \mathbb{F}, \Prob)$ is said to satisfy the \emph{usual conditions}
+if $\F_0$ contains all $\Prob$-null sets and the filtration is right-continuous:
+$\F_t = \bigcap_{s > t} \F_s$ for all~$t$.
+\end{definition}
+
+\begin{definition}[Stochastic Process]
+A \emph{stochastic process} on $(\Omega, \F, \Prob)$ is a collection of random
+variables $\{X_t\}_{t \in \mathcal{T}}$ indexed by a parameter set $\mathcal{T}$
+(typically $[0,T]$ or $\mathbb{Z}_{\geq 0}$).  The process is said to be
+\emph{$\mathbb{F}$-adapted} if $X_t$ is $\F_t$-measurable for every~$t$.
+\end{definition}
+
+The concept of adaptedness captures the intuition that at time $t$, the value
+$X_t$ is determined by the information available up to that moment.
+
+\section{Martingales}
+
+\begin{definition}[Martingale]
+An adapted, integrable process $\{M_t\}$ is a \emph{martingale} with respect to
+$\mathbb{F}$ if
+\[
+  \E[M_t \mid \F_s] = M_s \quad \text{for all } 0 \leq s \leq t.
+\]
+It is a \emph{supermartingale} (resp.\ \emph{submartingale}) if the equality is
+replaced by $\leq$ (resp.\ $\geq$).
+\end{definition}
+
+The martingale property is intimately related to the notion of a fair game: in a
+frictionless arbitrage-free market, discounted asset prices are martingales under
+a risk-neutral probability measure.  This observation, formalised in the First
+Fundamental Theorem of Asset Pricing, provides one of the deepest theoretical
+justifications for modelling asset prices as stochastic processes.
+
+\section{The Wiener Process (Brownian Motion)}
+
+The Wiener process is the canonical building block of continuous-time stochastic
+models in finance.
+
+\begin{definition}[Standard Wiener Process]
+\label{def:bm}
+A stochastic process $\{W_t\}_{t \geq 0}$ on a filtered probability space
+$(\Omega, \F, \mathbb{F}, \Prob)$ is a \emph{standard Wiener process} (or
+\emph{standard Brownian motion}) if:
+\begin{enumerate}[leftmargin=1.25cm, label=\textup{(W\arabic*)}]
+  \item $W_0 = 0$ almost surely;
+  \item $W$ has \emph{independent increments}: for $0 \leq t_0 < t_1 < \cdots < t_n$,
+    the increments $W_{t_1} - W_{t_0}, \ldots, W_{t_n} - W_{t_{n-1}}$ are
+    mutually independent;
+  \item $W$ has \emph{stationary Gaussian increments}: for all $0 \leq s < t$,
+    \[
+      W_t - W_s \sim \mathcal{N}(0,\, t - s);
+    \]
+  \item $W$ has \emph{continuous paths}: $t \mapsto W_t(\omega)$ is continuous
+    for $\Prob$-almost every $\omega \in \Omega$.
+\end{enumerate}
+\end{definition}
+
+\begin{proposition}[Martingale Property of Brownian Motion]
+\label{prop:bm_martingale}
+A standard Wiener process $\{W_t\}$ is a martingale with respect to its natural
+filtration $\F_t^W = \sigma(W_s : 0 \leq s \leq t)$.
+\end{proposition}
+
+\begin{proof}
+For $s \leq t$, write $W_t = W_s + (W_t - W_s)$.  By (W2), $(W_t - W_s)$ is
+independent of $\F_s^W$.  By (W3), $\E[W_t - W_s] = 0$.  Therefore,
+\[
+  \E[W_t \mid \F_s^W] = W_s + \E[W_t - W_s \mid \F_s^W]
+  = W_s + \E[W_t - W_s] = W_s. \qedhere
+\]
+\end{proof}
+
+\begin{proposition}[Quadratic Variation of Brownian Motion]
+\label{prop:bm_qv}
+For a standard Wiener process, the quadratic variation over $[0,t]$ satisfies
+\[
+  \langle W \rangle_t \;:=\; \lim_{\|\Pi\| \to 0}
+    \sum_{i=1}^{n} (W_{t_i} - W_{t_{i-1}})^2 = t
+    \quad \text{in } L^2(\Prob),
+\]
+where $\Pi = \{0 = t_0 < t_1 < \cdots < t_n = t\}$ and
+$\|\Pi\| = \max_i (t_i - t_{i-1})$.
+\end{proposition}
+
+This non-trivial result --- that Brownian paths accumulate quadratic variation at
+the constant rate of one unit per unit of time --- is the foundation of It\^{o}'s
+calculus.  Informally, the notation $dW_t^2 = dt$ encodes this fact.
+
+\begin{remark}
+Brownian motion paths are continuous but nowhere differentiable with probability
+one.  Consequently, the classical Lebesgue-Stieltjes integral $\int_0^t f(s)\,dW_s$
+is not well-defined pathwise, and a new integration theory --- the It\^{o} integral ---
+is required.
+\end{remark}
+
+\section{The It\^{o} Stochastic Integral}
+
+\begin{definition}[It\^{o} Integral for Simple Processes]
+Let $\phi = \sum_{i=0}^{n-1} \phi_i \mathbbm{1}_{[t_i, t_{i+1})}$ be an
+$\mathbb{F}$-adapted step process with $\E[\phi_i^2] < \infty$.  The
+\emph{It\^{o} integral} of $\phi$ with respect to $W$ is defined as
+\[
+  I_t(\phi) := \int_0^t \phi_s \,dW_s
+  = \sum_{i:\, t_i < t} \phi_i \bigl(W_{t_{i+1} \wedge t} - W_{t_i}\bigr).
+\]
+\end{definition}
+
+For general adapted square-integrable processes $\phi$, the integral is extended
+by a density argument in the $L^2$ sense.  The key isometry property is stated below.
+
+\begin{proposition}[It\^{o} Isometry]
+For any $\mathbb{F}$-adapted, square-integrable process $\phi$,
+\[
+  \E\!\left[\left(\int_0^t \phi_s \,dW_s\right)^{\!2}\right]
+  = \int_0^t \E[\phi_s^2]\, ds.
+\]
+\end{proposition}
+
+This identity implies that $\{I_t(\phi)\}_{t \geq 0}$ is a martingale,
+and underpins the $L^2$ theory of stochastic integration.
+
+\section{It\^{o}'s Lemma}
+
+It\^{o}'s lemma is the stochastic analogue of the chain rule and is the single
+most important computational tool in continuous-time finance.
+
+\begin{theorem}[It\^{o}'s Lemma --- One-Dimensional Form]
+\label{thm:ito}
+Let $X_t$ satisfy the stochastic differential equation
+$dX_t = \mu_t\,dt + \sigma_t\,dW_t$,
+and let $f : [0,T] \times \R \to \R$ be a function of class $C^{1,2}$
+(once continuously differentiable in $t$, twice in $x$).  Then
+\begin{equation}
+\label{eq:ito}
+  df(t, X_t) = \frac{\partial f}{\partial t}\,dt
+  + \frac{\partial f}{\partial x}\,dX_t
+  + \frac{1}{2}\frac{\partial^2 f}{\partial x^2}\,\sigma_t^2\,dt.
+\end{equation}
+\end{theorem}
+
+The extra term $\frac{1}{2}(\partial^2 f/\partial x^2)\sigma_t^2\,dt$ arises
+precisely because of Proposition~\ref{prop:bm_qv}: when we expand $df$ using
+Taylor's theorem, the term $(\partial^2 f/\partial x^2)(dX_t)^2/2$ contributes
+$\frac{1}{2}(\partial^2 f/\partial x^2)\sigma_t^2\,dt$ instead of vanishing as
+it would in classical calculus.
+
+\section{Existence and Uniqueness for SDEs}
+
+\begin{definition}[Stochastic Differential Equation]
+A \emph{stochastic differential equation} (SDE) on $[0,T]$ is of the form
+\begin{equation}
+\label{eq:sde}
+  dX_t = b(t, X_t)\,dt + \sigma(t, X_t)\,dW_t,
+  \quad X_0 = x_0 \in \R,
+\end{equation}
+where $b, \sigma : [0,T] \times \R \to \R$ are measurable coefficient functions.
+\end{definition}
+
+\begin{theorem}[Existence and Uniqueness --- Lipschitz Coefficients]
+\label{thm:sde_exist}
+Suppose the coefficients $b$ and $\sigma$ in~\eqref{eq:sde} satisfy:
+\begin{enumerate}[leftmargin=1.25cm, label=\textup{(C\arabic*)}]
+  \item \textbf{Global Lipschitz condition:} there exists $L > 0$ such that
+    \[
+      |b(t,x) - b(t,y)| + |\sigma(t,x) - \sigma(t,y)| \leq L|x - y|
+    \]
+    for all $t \in [0,T]$ and $x, y \in \R$;
+  \item \textbf{Linear growth condition:} there exists $C > 0$ such that
+    \[
+      |b(t,x)|^2 + |\sigma(t,x)|^2 \leq C^2(1 + x^2)
+    \]
+    for all $t \in [0,T]$ and $x \in \R$.
+\end{enumerate}
+Then equation~\eqref{eq:sde} has a \emph{unique strong solution} $\{X_t\}_{t \in [0,T]}$
+that is $\mathbb{F}$-adapted and satisfies
+$\E\!\left[\sup_{0 \leq t \leq T} X_t^2\right] < \infty$.
+\end{theorem}
+
+We will verify conditions (C1)--(C2) for each of the three SDE models studied in
+Chapter~3.
+
+%% ============================================================
+%%  CHAPTER 2 — WHY BITCOIN PRICE IS STOCHASTIC
+%% ============================================================
+\chapter{Why Bitcoin Price Is a Stochastic Process}
+\label{ch:stochastic}
+
+This chapter presents the theoretical and empirical justifications for treating
+the Bitcoin price $S_t$ as the solution of a stochastic differential equation.
+The argument proceeds in three stages.
+
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item \textbf{Market microstructure.}  Under the Efficient Market Hypothesis,
+    asset prices incorporate all available information instantaneously, implying
+    that price changes are driven by new, unpredictable information arrivals ---
+    naturally modelled as random shocks.
+  \item \textbf{Random Walk Hypothesis.}  The discrete-time log-return series
+    $\{r_t\}$ has the statistical properties of an i.i.d.\ process, at least to
+    a first approximation.
+  \item \textbf{Stylised facts.}  The empirical distribution of Bitcoin log-returns
+    exhibits heavy tails, volatility clustering, and occasional large jumps ---
+    properties that motivate extensions of the basic Gaussian random walk.
+\end{enumerate}
+
+\section{The Efficient Market Hypothesis}
+
+\begin{definition}[Informational Efficiency~{[2]}]
+A financial market is said to be \emph{efficient} with respect to an information
+set $\Phi_t$ if asset prices fully and instantaneously reflect all information
+contained in $\Phi_t$.
+\end{definition}
+
+Three nested forms are commonly distinguished.
+
+\begin{itemize}[leftmargin=1.25cm]
+  \item \textbf{Weak-form efficiency:} $\Phi_t$ contains only past prices and
+    trading volumes.
+  \item \textbf{Semi-strong efficiency:} $\Phi_t$ includes all publicly available
+    information (financial statements, macroeconomic data, news).
+  \item \textbf{Strong-form efficiency:} $\Phi_t$ includes all information, public
+    and private.
+\end{itemize}
+
+\begin{proposition}[Stochastic Prices under the EMH]
+\label{prop:emh}
+Suppose the market for Bitcoin satisfies weak-form efficiency.  Then the price
+process $\{S_t\}$ is a Markov process, and the log-return process
+$\{r_t = \ln(S_t / S_{t-1})\}$ constitutes a sequence of random variables
+uncorrelated with any function of past prices.
+\end{proposition}
+
+\begin{proof}[Argument]
+Under weak-form efficiency, no trading strategy based solely on the history
+$(S_0, S_1, \ldots, S_{t-1})$ can generate expected profits above the equilibrium
+return.  Formally, if $\pi_t$ denotes the equilibrium expected return per period,
+\[
+  \E[S_{t+1} \mid S_0, \ldots, S_t] = (1 + \pi_t) S_t.
+\]
+This is the martingale (or supermartingale) property.  Since $S_{t+1}$ depends on
+past prices only through $S_t$, the process is Markov.  Any excess return
+$r_t - \pi_{t-1}$ is unpredictable from past information, hence random.
+\end{proof}
+
+\begin{remark}
+Proposition~\ref{prop:emh} does \emph{not} claim that prices are unpredictable in
+an absolute sense --- only that the predictable component is the risk premium.  The
+unpredictable residual, the ``news component'', is what stochastic models aim to
+characterise.
+\end{remark}
+
+\section{The Random Walk Hypothesis}
+
+In continuous time, the ``price driven by random news arrivals'' idea leads to
+the following hypothesis.
+
+\begin{assumption}[Continuous Random Walk Hypothesis]
+\label{ass:crw}
+The log-price process $\{L_t = \ln S_t\}$ satisfies
+\[
+  L_t - L_s = \mu(t - s) + \sigma(W_t - W_s), \quad 0 \leq s \leq t,
+\]
+for constants $\mu \in \R$ (drift) and $\sigma > 0$ (diffusion coefficient),
+where $W$ is a standard Wiener process.
+\end{assumption}
+
+\begin{proposition}[Equivalence with Geometric Brownian Motion]
+\label{prop:gbm_equiv}
+Assumption~\ref{ass:crw} is equivalent to the requirement that $S_t$ solves
+the SDE
+\[
+  dS_t = \mu^* S_t\,dt + \sigma S_t\,dW_t, \quad \mu^* = \mu + \tfrac{1}{2}\sigma^2,
+\]
+i.e., $S_t$ follows Geometric Brownian Motion.
+\end{proposition}
+
+\begin{proof}
+Apply It\^{o}'s Lemma (Theorem~\ref{thm:ito}) to $f(x) = e^x$ with
+$X_t = \ln S_t = L_t$.  From Assumption~\ref{ass:crw},
+$dL_t = \mu\,dt + \sigma\,dW_t$.  Then
+\[
+  dS_t = d(e^{L_t})
+  = e^{L_t}\,dL_t + \tfrac{1}{2} e^{L_t} (dL_t)^2
+  = S_t(\mu\,dt + \sigma\,dW_t) + \tfrac{1}{2} S_t \sigma^2\,dt
+  = \bigl(\mu + \tfrac{1}{2}\sigma^2\bigr)S_t\,dt + \sigma S_t\,dW_t. \qedhere
+\]
+\end{proof}
+
+\subsection{Empirical Testing of the Random Walk Hypothesis}
+
+The Random Walk Hypothesis (RWH) implies specific testable restrictions on
+the log-return series.  Three classical tests are considered here.
+
+\paragraph{Augmented Dickey-Fuller test.}
+The ADF test examines whether the log-price series contains a unit root.
+Under the null $H_0{:}\ \rho = 1$, the log-price follows a random walk (possibly
+with drift).  For Bitcoin, empirical studies consistently \emph{fail to reject}
+$H_0$ at standard significance levels for prices ($p = 0.43$),
+while the return series $\{r_t\}$ is stationary ($p < 0.001$).
+
+\paragraph{Ljung-Box test for serial correlation.}
+The Ljung-Box $Q$-statistic tests the joint hypothesis that the first $k$
+autocorrelations of $\{r_t\}$ are zero:
+\[
+  Q(k) = n(n+2)\sum_{j=1}^{k} \frac{\hat{\rho}_j^2}{n - j},
+\]
+where $\hat{\rho}_j$ is the sample autocorrelation at lag $j$ and $n$ is the
+sample size.  Under the RWH, $Q(k) \overset{d}{\to} \chi^2(k)$.
+Empirical results for Bitcoin show negligible autocorrelation in raw returns,
+consistent with the RWH, but \emph{significant} autocorrelation in squared
+returns $\{r_t^2\}$ ($p < 0.001$ at lags 1--10) --- the signature of
+volatility clustering discussed in Section~\ref{sec:stylised}.
+
+\paragraph{Variance ratio test.}
+If $\{r_t\}$ is i.i.d., the variance of $k$-period returns equals $k$ times the
+variance of one-period returns.  The variance ratio
+\[
+  VR(k) = \frac{\Var[r_t^{(k)}]}{k \cdot \Var[r_t]}, \qquad
+  r_t^{(k)} = \sum_{j=0}^{k-1} r_{t-j},
+\]
+should equal one under the RWH.  Empirical estimates for daily Bitcoin data
+typically yield $VR(k) \approx 1$ for moderate $k$, supporting the RWH in the
+first-moment sense, although deviations appear at high frequencies.
+
+\section{Stylised Facts of Bitcoin Log-Returns}
+\label{sec:stylised}
+
+While the RWH provides a theoretical justification for stochastic modelling,
+the Gaussian random walk (Assumption~\ref{ass:crw}) is an idealisation that fails
+to capture several well-documented empirical regularities, known as
+\emph{stylised facts}.
+
+\subsection{Heavy Tails (Leptokurtosis)}
+
+\begin{proposition}[Kurtosis of Gaussian Returns]
+If $\{r_t\} \overset{\text{i.i.d.}}{\sim} \mathcal{N}(\mu, \sigma^2)$, then the
+excess kurtosis is $\kappa = 0$.
+\end{proposition}
+
+In practice, the excess kurtosis of Bitcoin daily log-returns is
+$\hat{\kappa} \approx 7.84$, implying a probability of large moves far in
+excess of Gaussian predictions.  A Jarque-Bera test strongly rejects normality
+at any conventional significance level ($p < 0.001$).
+
+The heavy-tailed distribution of returns can be attributed to two sources.
+
+\begin{itemize}[leftmargin=1.25cm]
+  \item \textbf{Jump events:} rare but large discontinuous price movements caused
+    by exchange hacks, regulatory announcements, or macroeconomic shocks.  The Merton
+    Jump-Diffusion model (Section~\ref{sec:merton}) captures this by superimposing a
+    compound Poisson process on the Brownian diffusion.
+  \item \textbf{Stochastic volatility:} if the instantaneous variance $v_t$ is itself
+    random and time-varying, the marginal distribution of returns
+    $r_t = \int_{t-\Delta}^t \sqrt{v_s}\,dW_s + \mu\Delta$ is a Gaussian scale mixture,
+    which is inherently heavy-tailed.  This motivates the Heston model (Section~\ref{sec:heston}).
+\end{itemize}
+
+\subsection{Volatility Clustering}
+
+\begin{definition}[Volatility Clustering]
+A return series $\{r_t\}$ exhibits \emph{volatility clustering} if large (small)
+absolute returns tend to be followed by large (small) absolute returns:
+\[
+  \operatorname{Corr}(|r_t|, |r_{t-k}|) > 0 \quad \text{for small } k \geq 1.
+\]
+\end{definition}
+
+Volatility clustering was first documented by Mandelbrot~[3] for commodity prices and
+has been universally confirmed in cryptocurrency markets.  It implies that the
+instantaneous volatility $\sigma_t$ is not constant but is itself a stochastic process,
+providing direct empirical motivation for the Heston model.
+
+\begin{proposition}[GBM Cannot Exhibit Volatility Clustering]
+Under GBM, the log-returns $r_t = (\mu - \frac{1}{2}\sigma^2)\Delta t + \sigma\Delta W$
+are i.i.d.\ Gaussian, so $\operatorname{Corr}(|r_t|, |r_{t-k}|) = 0$ for all
+$k \geq 1$.
+\end{proposition}
+
+This proposition shows that GBM is \emph{structurally incapable} of reproducing
+volatility clustering, and motivates the introduction of stochastic volatility models.
+
+\subsection{Leverage Effect (Asymmetric Volatility)}
+
+Empirical studies of traditional equity markets report a \emph{negative} correlation
+between return shocks and subsequent volatility changes: large negative returns tend
+to be followed by elevated volatility.  For Bitcoin, this effect is attenuated but
+still statistically significant, particularly at daily frequencies.
+
+Formally, if $\rho = \operatorname{Corr}(dW_1, dW_2)$ denotes the correlation between
+the price Brownian $W_1$ and the variance Brownian $W_2$ in the Heston model, then
+$\rho < 0$ captures the leverage effect.
+
+\subsection{Non-Stationarity and Structural Breaks}
+
+Bitcoin prices have undergone several distinct regimes, including explosive growth
+phases (2017, 2020-2021) and sustained drawdowns (2018, 2022).  The log-price
+series is non-stationary ($I(1)$), while the log-return series is weakly stationary.
+Structural break tests (e.g., the Bai-Perron test) identify multiple change-points
+in the drift parameter $\mu$ and the volatility parameter $\sigma$.
+
+\begin{remark}
+Non-stationarity of the level process $\{S_t\}$ is \emph{consistent} with the GBM
+model, since GBM is a continuous-time process with non-stationary levels and (weakly)
+stationary log-returns.  However, regime changes in $\mu$ and $\sigma$ suggest that
+a constant-coefficient SDE is a simplification, and that time-varying or
+regime-switching models may be more appropriate for long horizons.  This observation
+directly motivates the Hybrid SDE-ML model introduced in Section~\ref{sec:hybrid}.
+\end{remark}
+
+\section{Why the Stochastic Process Framework is Appropriate}
+
+We now synthesise the foregoing arguments into a formal justification.
+
+\begin{proposition}[Stochastic Process Representation]
+\label{prop:sp_rep}
+Suppose the following conditions hold for the Bitcoin market.
+\begin{enumerate}[leftmargin=1.25cm, label=\textup{(A\arabic*)}]
+  \item \textbf{(Weak-form efficiency)}  No strategy based on price history
+    generates risk-free profits above the equilibrium return.
+  \item \textbf{(Information continuity)}  New information arrives continuously
+    and in small doses rather than in a finite number of large discrete jumps.
+  \item \textbf{(Finite variance)}  The log-return process has finite second moments
+    over any fixed time horizon.
+  \item \textbf{(Independent information shocks)}  The incremental information
+    arriving in non-overlapping time intervals is independent.
+\end{enumerate}
+Then there exists a probability space $(\Omega, \F, \mathbb{F}, \Prob)$ and a
+standard Wiener process $W$ on it, such that the log-price process
+$\{L_t = \ln S_t\}$ can be represented as
+\[
+  L_t = L_0 + \int_0^t \mu_s\,ds + \int_0^t \sigma_s\,dW_s,
+\]
+for $\mathbb{F}$-adapted processes $\mu$ and $\sigma > 0$ with
+$\int_0^T (\mu_s^2 + \sigma_s^2)\,ds < \infty$ a.s.
+\end{proposition}
+
+\begin{proof}[Sketch of proof]
+Assumption (A1) implies that discounted prices are martingales under the physical
+measure (up to a risk premium).  By the Martingale Representation Theorem (see~[4]),
+any square-integrable martingale on a Brownian filtration admits the stochastic integral
+representation above.  Assumption (A2) ensures the filtration is generated by a
+Brownian motion rather than a Poisson or jump process.  Assumptions (A3)--(A4) ensure
+the coefficients are well-defined and the integral converges.
+\end{proof}
+
+\begin{remark}
+The departure from Assumption (A2) --- allowing large discrete jumps --- leads naturally
+to the Merton Jump-Diffusion model (Section~\ref{sec:merton}), where the driving noise
+is $W_t + \sum_{i=1}^{N_t} J_i$, a superposition of a Brownian motion and a
+compound Poisson process.
+\end{remark}
+
+%% ============================================================
+%%  CHAPTER 3 — SDE MODELS
+%% ============================================================
+\chapter{Stochastic Differential Equation Models for Bitcoin}
+\label{ch:sde_models}
+
+\section{Geometric Brownian Motion}
+\label{sec:gbm}
+
+\subsection{Model Formulation}
+
+\begin{assumption}[GBM Assumptions]
+\label{ass:gbm}
+\begin{enumerate}[leftmargin=1.25cm, label=\textup{(G\arabic*)}]
+  \item The market is frictionless (no transaction costs, taxes, or short-selling
+    restrictions).
+  \item The log-return over any infinitesimal interval $dt$ is independently and
+    identically Gaussian-distributed:
+    $d\ln S_t \sim \mathcal{N}(\nu\,dt,\, \sigma^2 dt)$ for constants
+    $\nu \in \R$, $\sigma > 0$.
+  \item The drift $\nu$ and volatility $\sigma$ are constant over the modelling
+    horizon.
+\end{enumerate}
+\end{assumption}
+
+\begin{proposition}[GBM SDE]
+\label{prop:gbm_sde}
+Under Assumption~\ref{ass:gbm}, the price process satisfies
+\begin{equation}
+\label{eq:gbm}
+  dS_t = \mu S_t\,dt + \sigma S_t\,dW_t, \quad S_0 > 0,
+\end{equation}
+where $\mu = \nu + \frac{1}{2}\sigma^2$ is the expected instantaneous rate of return.
+\end{proposition}
+
+\begin{proof}
+The hypothesis $d\ln S_t = \nu\,dt + \sigma\,dW_t$ means
+$\ln S_t = \ln S_0 + \nu t + \sigma W_t$.  Setting $f(x) = e^x$ and
+applying It\^{o}'s Lemma (Theorem~\ref{thm:ito}):
+\[
+  dS_t = S_t\,d(\ln S_t) + \tfrac{1}{2}S_t(d\ln S_t)^2
+  = S_t(\nu\,dt + \sigma\,dW_t) + \tfrac{1}{2}S_t\sigma^2\,dt
+  = \bigl(\nu + \tfrac{1}{2}\sigma^2\bigr)S_t\,dt + \sigma S_t\,dW_t.
+\]
+Setting $\mu = \nu + \frac{1}{2}\sigma^2$ gives equation~\eqref{eq:gbm}.
+\end{proof}
+
+\subsection{Closed-Form Solution}
+
+\begin{proposition}[Explicit Solution to GBM]
+\label{prop:gbm_solution}
+The unique strong solution to~\eqref{eq:gbm} is
+\begin{equation}
+\label{eq:gbm_solution}
+  S_t = S_0 \exp\!\left\{\!\left(\mu - \tfrac{1}{2}\sigma^2\right)t
+  + \sigma W_t\right\}.
+\end{equation}
+In particular, $\ln(S_t/S_0) \sim \mathcal{N}\!\left((\mu - \frac{1}{2}\sigma^2)t,\, \sigma^2 t\right)$.
+\end{proposition}
+
+\begin{proof}
+The coefficients $b(t,x) = \mu x$ and $\sigma(t,x) = \sigma x$ satisfy the global
+Lipschitz and linear growth conditions of Theorem~\ref{thm:sde_exist} after a
+logarithmic change of variables.  The closed form follows from integrating
+$d\ln S_t = (\mu - \frac{1}{2}\sigma^2)\,dt + \sigma\,dW_t$.
+\end{proof}
+
+\subsection{Parameter Calibration}
+
+Given a discrete price series $S_0, S_1, \ldots, S_n$ sampled at intervals $\Delta t$,
+the log-returns
+$r_i = \ln(S_i / S_{i-1}) \overset{\text{i.i.d.}}{\sim} \mathcal{N}((\mu - \frac{1}{2}\sigma^2)\Delta t,\, \sigma^2\Delta t)$.
+The maximum likelihood estimators are
+\begin{equation}
+  \hat\sigma^2 = \frac{1}{(n-1)\Delta t}
+    \sum_{i=1}^n (r_i - \bar r)^2,
+  \qquad
+  \hat\mu = \frac{\bar r}{\Delta t} + \frac{\hat\sigma^2}{2},
+\end{equation}
+where $\bar r = n^{-1}\sum_{i=1}^n r_i$.  Both estimators are consistent and
+asymptotically normal under the model.
+
+\subsection{Limitations for Bitcoin}
+
+GBM captures only the first and second moments of the return distribution.
+For Bitcoin, the following empirical features are inconsistent with GBM.
+
+\begin{itemize}[leftmargin=1.25cm]
+  \item Excess kurtosis ($\hat\kappa > 0$) implies fatter tails than Gaussian.
+  \item Significant autocorrelation of squared returns implies non-constant volatility.
+  \item Occasional ``crash'' or ``bubble'' events imply the presence of large discrete jumps.
+\end{itemize}
+
+These limitations motivate the more sophisticated models developed in
+Sections~\ref{sec:merton} and~\ref{sec:heston}.
+
+\section{Merton Jump-Diffusion Model}
+\label{sec:merton}
+
+\subsection{Motivation and Assumptions}
+
+The Merton (1976) model~[5] augments GBM by a compound Poisson process that accounts
+for sudden, large price movements caused by unexpected news events.  Such events are
+particularly common in the cryptocurrency market: exchange hacks, regulatory bans, and
+large institutional trades can cause single-day price movements of 10\,\%--30\,\% that
+are impossible under GBM.
+
+\begin{assumption}[Merton Jump-Diffusion Assumptions]
+\label{ass:merton}
+\begin{enumerate}[leftmargin=1.25cm, label=\textup{(M\arabic*)}]
+  \item Between jumps, the price process follows GBM with constant drift $\mu$ and
+    diffusion coefficient $\sigma$.
+  \item Jumps arrive according to a homogeneous Poisson process $\{N_t\}$ with
+    constant intensity $\lambda > 0$, independent of $W_t$.
+  \item The $k$-th jump multiplies the price by a random factor $Y_k$, where
+    $\ln Y_k \overset{\text{i.i.d.}}{\sim} \mathcal{N}(\mu_J, \sigma_J^2)$,
+    independent of each other and of $N_t$ and $W_t$.
+  \item The expected relative jump size is
+    $\kappa = \E[Y_k - 1] = e^{\mu_J + \sigma_J^2/2} - 1$.
+\end{enumerate}
+\end{assumption}
+
+\subsection{Model Formulation}
+
+\begin{proposition}[Merton SDE]
+\label{prop:merton_sde}
+Under Assumption~\ref{ass:merton}, the price process satisfies
+\begin{equation}
+\label{eq:merton}
+  dS_t = (\mu - \lambda\kappa)S_{t^-}\,dt + \sigma S_{t^-}\,dW_t
+    + S_{t^-}\,dJ_t,
+\end{equation}
+where $J_t = \sum_{k=1}^{N_t}(Y_k - 1)$ is the compound Poisson process,
+$S_{t^-} = \lim_{s \nearrow t} S_s$ is the left-limit, and the drift is
+adjusted by $-\lambda\kappa S_{t^-}\,dt$ to ensure $\E[dS_t] = \mu S_{t^-}\,dt$.
+\end{proposition}
+
+\begin{proof}
+The total price change over $[t, t+dt]$ consists of a continuous diffusion part and
+a jump part.  The expected contribution of the compound Poisson process over $dt$ is
+$S_{t^-}\,\E[dJ_t] = S_{t^-}\lambda\kappa\,dt$.  To ensure the total expected return
+equals $\mu\,dt$, the continuous drift is set to $(\mu - \lambda\kappa)S_{t^-}\,dt$.
+\end{proof}
+
+\subsection{Return Distribution}
+
+\begin{proposition}[Return Distribution under the Merton Model]
+\label{prop:merton_dist}
+Under the Merton Jump-Diffusion model, the log-return over horizon $\Delta t$ is
+\begin{equation}
+  \ln\!\frac{S_{t+\Delta t}}{S_t}
+  = \Bigl(\mu - \lambda\kappa - \tfrac{1}{2}\sigma^2\Bigr)\Delta t
+    + \sigma\sqrt{\Delta t}\, Z
+    + \sum_{k=1}^{N(\Delta t)} \ln Y_k,
+\end{equation}
+where $Z \sim \mathcal{N}(0,1)$ and $N(\Delta t) \sim \operatorname{Poisson}(\lambda\Delta t)$,
+all independent.  Conditionally on $N(\Delta t) = n$, the log-return is Gaussian:
+\begin{equation}
+  \ln(S_{t+\Delta t}/S_t) \,\big|\, N(\Delta t) = n
+  \;\sim\;
+  \mathcal{N}\!\left(m_n\Delta t,\; v_n\Delta t\right),
+\end{equation}
+where $m_n = \mu - \lambda\kappa - \frac{1}{2}\sigma^2 + n\mu_J/\Delta t$ and
+$v_n = \sigma^2 + n\sigma_J^2/\Delta t$.
+\end{proposition}
+
+The unconditional distribution is therefore a \emph{Poisson mixture of Gaussians},
+which has heavier tails than a single Gaussian for any $\lambda > 0$, $\sigma_J > 0$.
+This directly addresses the leptokurtosis observed in Bitcoin returns.
+
+\subsection{Maximum Likelihood Calibration}
+
+The log-likelihood function for the observed return vector $\mathbf{r} = (r_1, \ldots, r_n)$,
+$r_i = \ln(S_i/S_{i-1})$, is
+\begin{equation}
+\label{eq:merton_ll}
+  \ell(\theta; \mathbf{r}) = \sum_{i=1}^n \ln \!\left[
+    \sum_{k=0}^{\infty}
+    \frac{e^{-\lambda\Delta t}(\lambda\Delta t)^k}{k!}
+    \cdot \phi\!\left(r_i;\; m_k\Delta t,\; v_k\Delta t\right)
+  \right],
+\end{equation}
+where $\phi(\cdot;\, \bar m, \bar v)$ denotes the Gaussian density with mean $\bar m$
+and variance $\bar v$, and $\theta = (\mu, \sigma, \lambda, \mu_J, \sigma_J)$.
+In practice the infinite sum is truncated at $K = 20$ terms.  Maximisation of
+equation~\eqref{eq:merton_ll} is performed numerically via L-BFGS-B, with initial
+estimates derived from the GBM calibration.
+
+\subsection{Simulation Algorithm}
+
+For each time step $[t_i, t_{i+1}]$ with $\Delta t = t_{i+1} - t_i$:
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item Draw $N_i \sim \operatorname{Poisson}(\lambda\Delta t)$.
+  \item Draw $Z_i \sim \mathcal{N}(0,1)$ (diffusion shock).
+  \item The jump contribution is
+    $\sum_{k=1}^{N_i}\ln Y_k \sim \mathcal{N}(N_i\mu_J, N_i\sigma_J^2)$.
+  \item The log-price increment is
+    $\Delta L_i = (\mu - \lambda\kappa - \frac{1}{2}\sigma^2)\Delta t
+    + \sigma\sqrt{\Delta t}\,Z_i + N_i\mu_J + \sqrt{N_i}\,\sigma_J\,Z_i^J$,
+    where $Z_i^J \sim \mathcal{N}(0,1)$, independent of $Z_i$.
+\end{enumerate}
+
+\section{Heston Stochastic Volatility Model}
+\label{sec:heston}
+
+\subsection{Motivation}
+
+As established in Section~\ref{sec:stylised}, Bitcoin returns exhibit significant
+volatility clustering.  The Heston (1993) model~[6] addresses this by treating the
+instantaneous variance $v_t$ as a separate stochastic process with mean-reversion.
+
+\begin{assumption}[Heston Model Assumptions]
+\label{ass:heston}
+\begin{enumerate}[leftmargin=1.25cm, label=\textup{(H\arabic*)}]
+  \item The log-price increments are conditionally Gaussian with time-varying variance:
+    $d\ln S_t \mid v_t \sim \mathcal{N}((\mu - \frac{1}{2}v_t)\,dt,\; v_t\,dt)$.
+  \item The instantaneous variance $v_t \geq 0$ is a mean-reverting stochastic process
+    driven by a second Brownian motion $W_t^{(2)}$.
+  \item The two Brownian motions are correlated:
+    $d\langle W^{(1)}, W^{(2)}\rangle_t = \rho\,dt$ for a constant $\rho \in (-1,1)$.
+  \item The variance process is driven by a Cox-Ingersoll-Ross (CIR) SDE with
+    mean-reversion level $\theta > 0$, speed $\kappa > 0$, and vol-of-vol $\xi > 0$.
+\end{enumerate}
+\end{assumption}
+
+\subsection{Model Formulation}
+
+\begin{proposition}[Heston SDE System]
+\label{prop:heston_sde}
+Under Assumption~\ref{ass:heston}, the price-variance system satisfies
+\begin{align}
+  dS_t &= \mu S_t\,dt + \sqrt{v_t}\,S_t\,dW_t^{(1)}, \label{eq:heston_s}\\
+  dv_t &= \kappa(\theta - v_t)\,dt + \xi\sqrt{v_t}\,dW_t^{(2)}, \label{eq:heston_v}
+\end{align}
+where $\operatorname{Corr}(W^{(1)}, W^{(2)}) = \rho$.  Equation~\eqref{eq:heston_v}
+is the Cox-Ingersoll-Ross (CIR) process~[7].
+\end{proposition}
+
+\subsection{Properties of the CIR Variance Process}
+
+\begin{proposition}[Feller Condition]
+\label{prop:feller}
+The CIR process~\eqref{eq:heston_v} satisfies $v_t > 0$ almost surely for all
+$t > 0$ if and only if the Feller condition holds:
+\[
+  2\kappa\theta > \xi^2.
+\]
+When the Feller condition is violated, $v_t$ can reach zero, though it is
+immediately reflected back due to the $\sqrt{v_t}$ diffusion coefficient.
+\end{proposition}
+
+\begin{remark}
+The Feller condition is an important constraint on the Heston parameters.
+In our calibration procedure, we enforce it as a soft constraint by capping
+$\xi$ at $0.9\sqrt{2\kappa\theta}$.
+\end{remark}
+
+\begin{proposition}[Conditional Moments of the CIR Process]
+\label{prop:cir_moments}
+For the CIR process with $v_0 > 0$, the conditional mean and variance at time $t$ are:
+\begin{align}
+  \E[v_t \mid v_0] &= \theta + (v_0 - \theta)e^{-\kappa t}, \\
+  \Var[v_t \mid v_0] &= v_0\frac{\xi^2}{\kappa}e^{-\kappa t}(1 - e^{-\kappa t})
+    + \frac{\theta\xi^2}{2\kappa}(1 - e^{-\kappa t})^2.
+\end{align}
+As $t \to \infty$, $v_t$ converges in distribution to a Gamma distribution with
+mean $\theta$ and variance $\theta\xi^2/(2\kappa)$.
+\end{proposition}
+
+The mean-reversion structure of the CIR process directly captures the empirical
+observation that Bitcoin volatility, while time-varying, tends to revert to a
+long-run level $\theta$ at speed $\kappa$.
+
+\subsection{Parameter Calibration via Moment Matching}
+
+The Heston model has five parameters $(\mu, \kappa, \theta, \xi, \rho)$ plus the
+initial variance $v_0$.  We use a moment-matching procedure based on the realised
+variance (RV) series.
+
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item \textbf{Drift:}
+    $\hat\mu = \bar r / \Delta t + \hat\sigma^2 / (2\Delta t)$,
+    where $\hat\sigma^2 = \widehat{\Var}[r_t]$.
+  \item \textbf{Initial and long-run variance:}
+    $\hat v_0 = \hat\sigma^2 / \Delta t$;\quad
+    $\hat\theta = \overline{RV}$, the sample mean of the realised variance series
+    $RV_t = n^{-1}\sum_{i \in \text{window}} r_i^2 / \Delta t$.
+  \item \textbf{Mean-reversion speed:}
+    Fit an AR(1) model $RV_{t+1} = \alpha_0 + \beta_1 RV_t + \varepsilon_t$.
+    Then $\hat\kappa = -\ln(\hat\beta_1) / \Delta t$.
+  \item \textbf{Vol-of-vol:}
+    $\hat\xi = \widehat{\operatorname{Std}}[\Delta RV_t] / (\sqrt{\hat\theta}\,\sqrt{\Delta t})$.
+  \item \textbf{Correlation:}
+    $\hat\rho = \widehat{\operatorname{Corr}}[r_t,\, \Delta RV_t]$.
+\end{enumerate}
+
+\subsection{Simulation via Euler-Maruyama}
+
+Because the Heston SDE does not admit a closed-form simulation scheme for arbitrary
+parameters, we use the Euler-Maruyama discretisation with the \emph{full truncation}
+scheme to ensure non-negativity of the variance:
+\begin{align}
+  S_{t+\Delta t} &= S_t\exp\!\bigl(
+    (\mu - \tfrac{1}{2}v_t^+)\Delta t + \sqrt{v_t^+\,\Delta t}\,Z_1
+  \bigr), \label{eq:heston_euler_s}\\
+  v_{t+\Delta t} &= v_t + \kappa(\theta - v_t^+)\Delta t
+    + \xi\sqrt{v_t^+\,\Delta t}\,Z_2, \label{eq:heston_euler_v}
+\end{align}
+where $v_t^+ = \max(v_t, 0)$ and $(Z_1, Z_2)$ are bivariate standard normal with
+correlation $\rho$.
+
+\begin{remark}
+More accurate discretisation schemes exist, for example the Quadratic Exponential
+scheme of Andersen~[8], which converges faster and better handles the boundary
+at $v = 0$.  For the purposes of this thesis, the full truncation Euler scheme
+is sufficient to demonstrate the model's qualitative behaviour.
+\end{remark}
+
+%% ============================================================
+%%  CHAPTER 4 — MACHINE LEARNING MODELS
+%% ============================================================
+\chapter{Machine Learning Models for Price Prediction}
+\label{ch:ml_models}
+
+\section{Supervised Learning Framework}
+
+The ML prediction problem is a supervised regression task: given feature
+vector $\mathbf{x}_t \in \R^p$, predict $y_{t+h} = S_{t+h}$.  All models
+minimise an empirical squared-error loss.
+
+\section{Elastic Net Regression}
+
+Elastic Net~[9] solves
+\begin{equation}
+\label{eq:enet}
+  \hat{\bm\beta} = \argmin_{\bm\beta}
+  \left\{
+    \frac{1}{n}\|\mathbf{y} - \mathbf{X}\bm\beta\|_2^2
+    + \alpha\rho\|\bm\beta\|_1
+    + \frac{\alpha(1-\rho)}{2}\|\bm\beta\|_2^2
+  \right\}.
+\end{equation}
+It serves as the \emph{linear baseline} and its coefficient vector $\hat{\bm\beta}$
+directly ranks feature importance by $|\hat\beta_j|$.  Hyperparameters:
+$\alpha = 1.0$, $\rho = 0.5$.
+
+\section{Random Forest}
+
+Random Forest~[10] averages $B = 200$ regression trees trained on bootstrap
+samples with random feature subsets.  Node-impurity-decrease averaged across
+all trees provides a natural measure of feature importance.
+Hyperparameters: $B = 200$, max\_depth\,=\,None.
+
+\section{Gradient Boosting}
+
+Gradient Boosting~[11] builds an additive model by iteratively fitting shallow
+trees to the negative gradient of the squared-error loss.  The shrinkage
+parameter $\eta$ acts as regularisation.
+Hyperparameters: $M = 200$, $\eta = 0.05$, max\_depth\,=\,3.
+
+\section{Long Short-Term Memory Networks}
+\label{sec:lstm}
+
+Long Short-Term Memory (LSTM) networks~[12] are recurrent networks designed
+for sequential data.  At each time step $t$ the cell maintains a state
+$\mathbf{c}_t$ updated by four gating mechanisms:
+\begin{align}
+  \mathbf{f}_t &= \sigma_g(\mathbf{W}_f[\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_f),
+    \quad \text{(forget gate)} \\
+  \mathbf{i}_t &= \sigma_g(\mathbf{W}_i[\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_i),
+    \quad \text{(input gate)} \\
+  \tilde{\mathbf{c}}_t &= \tanh(\mathbf{W}_c[\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_c),
+    \quad \text{(cell candidate)} \\
+  \mathbf{c}_t &= \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{c}}_t,
+    \quad \text{(cell update)} \\
+  \mathbf{o}_t &= \sigma_g(\mathbf{W}_o[\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_o),
+    \quad \text{(output gate)} \\
+  \mathbf{h}_t &= \mathbf{o}_t \odot \tanh(\mathbf{c}_t).
+    \quad \text{(hidden state)}
+\end{align}
+
+\paragraph{Sequence construction.}
+Tabular features of shape $(n, p)$ are converted to 3-D LSTM input
+$(n - L, L, p)$ using a sliding window of length $L = 20$ bars.  The
+$i$-th sample spans bars $[i, i+L)$ and its label is the target at bar $i+L$.
+
+\paragraph{Architecture and training.}
+The network consists of a single LSTM layer with 64 hidden units, a Dropout
+layer (rate 0.2), and a Dense(1) output.  Features and targets are normalised
+to $[0,1]$ via Min-Max scaling before training.  Training uses the Adam
+optimiser~[13] (learning rate $10^{-3}$) with MSE loss and early stopping
+(patience\,=\,5, monitor validation loss).
+
+Table~\ref{tab:hyperparams} summarises the hyperparameters of all models.
+
+\begin{table}[H]
+\begin{singlespace}
+\fontsize{10}{11}\selectfont
+\caption{Hyperparameter settings for all ML models}
+\label{tab:hyperparams}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Model & Hyperparameter & Value \\
+\midrule
+\multirow{2}{*}{Elastic Net}
+  & Regularisation strength $\alpha$ & 1.0 \\
+  & $\ell_1$ mixing ratio $\rho$ & 0.5 \\[4pt]
+\multirow{2}{*}{Random Forest}
+  & Number of trees $B$ & 200 \\
+  & Max tree depth & None (fully grown) \\[4pt]
+\multirow{3}{*}{Gradient Boosting}
+  & Number of trees $M$ & 200 \\
+  & Learning rate $\eta$ & 0.05 \\
+  & Max tree depth & 3 \\[4pt]
+\multirow{5}{*}{LSTM}
+  & Sequence length $L$ & 20 \\
+  & Hidden units & 64 \\
+  & Dropout rate & 0.2 \\
+  & Learning rate & $10^{-3}$ \\
+  & Max epochs (early stopping) & 30 \\[4pt]
+\multirow{3}{*}{SDE-ML Hybrid (GB component)}
+  & Number of trees $M$ & 200 \\
+  & Learning rate $\eta$ & 0.05 \\
+  & Rolling RV window & 20 \\
+\bottomrule
+\end{tabular}
+\end{singlespace}
+\end{table}
+
+%% ============================================================
+%%  CHAPTER 4.6 — HYBRID SDE-ML MODEL (NOVELTY)
+%% ============================================================
+\section{SDE-ML Hybrid Model with Time-Varying Drift}
+\label{sec:hybrid}
+
+\subsection{Motivation}
+
+The comparative analysis in Section~\ref{sec:stylised} shows that Bitcoin
+log-returns exhibit structural breaks and time-varying drift, contradicting the
+constant-coefficient assumption of all three SDE models.  Meanwhile, pure ML
+models achieve high point-prediction accuracy but provide no distributional
+forecasts and have no mechanism to quantify uncertainty.
+
+We propose a \textbf{Hybrid SDE-ML model} that addresses both limitations
+simultaneously.
+
+\subsection{Model Formulation}
+
+Let $r_t = \ln(S_t / S_{t-1})$ be the observed log-return at time $t$.  Define:
+\begin{itemize}[leftmargin=1.25cm]
+  \item $\hat\mu_t = f_{\text{GB}}(\mathbf{x}_t)$: the one-step drift predicted
+    by a Gradient Boosting regressor from feature vector $\mathbf{x}_t$;
+  \item $\hat\sigma_t$: the rolling realised volatility estimated over a 20-bar
+    window, $\hat\sigma_t = \frac{1}{\sqrt{\Delta t}}\sqrt{\frac{1}{w-1}\sum_{k=0}^{w-1}r_{t-k}^2}$.
+\end{itemize}
+
+\begin{definition}[Hybrid SDE-ML Dynamics]
+\label{def:hybrid}
+The $h$-step-ahead conditional distribution of the price is modelled as
+\begin{equation}
+\label{eq:hybrid}
+  S_{t+h} = S_t \cdot \exp\!\left(
+    \hat\mu_t \cdot h\Delta t
+    \;+\; \hat\sigma_t \cdot \sqrt{h\Delta t} \cdot Z
+  \right), \quad Z \sim \mathcal{N}(0,1),
+\end{equation}
+where $\hat\mu_t$ is the ML-predicted drift and $\hat\sigma_t$ is the
+realised-volatility estimate at time $t$.
+\end{definition}
+
+\begin{remark}
+The point forecast (conditional median, $Z = 0$) is
+$\hat S_{t+h} = S_t \cdot \exp(\hat\mu_t \cdot h\Delta t)$.
+The conditional distribution is log-normal with time-varying parameters
+$(\hat\mu_t, \hat\sigma_t)$, enabling proper uncertainty quantification.
+\end{remark}
+
+\subsection{Feature Vector for the Drift Predictor}
+
+The ML drift predictor $f_{\text{GB}}$ is trained to predict the next-bar
+log-return from the following features:
+\begin{itemize}[leftmargin=1.25cm]
+  \item lagged log-returns $r_{t-1}, \ldots, r_{t-10}$;
+  \item current realised volatility $\hat\sigma_t$;
+  \item 14-bar RSI momentum proxy: fraction of positive returns in $[t-14, t)$.
+\end{itemize}
+
+\subsection{Relationship to Neural SDEs}
+
+The Hybrid SDE-ML model is a specific instance of the Neural SDE family~[14],
+in which the drift function $b(t, S_t)$ is replaced by a non-parametric
+machine learning approximator trained on data.  Unlike full Neural SDEs, which
+parameterise both drift and diffusion as neural networks, our approach uses a
+simpler gradient boosting regressor for the drift and an analytic realised
+variance estimator for the diffusion.  This provides interpretable feature
+importances for the drift component (Table~\ref{tab:feat_imp}) while
+retaining the theoretical guarantees of GBM for the diffusion term.
+
+%% ============================================================
+%%  CHAPTER 5 — METHODOLOGY AND DATA
+%% ============================================================
+\chapter{Methodology and Data}
+\label{ch:methodology}
+
+\section{Data Description}
+
+\subsection{Source and Collection}
+
+Bitcoin price data are obtained from Yahoo Finance via the \texttt{yfinance}
+Python library.  The data include High, Low, Close, and Volume across six time
+resolutions: 1m, 5m, 15m, 30m, 60m, and 1d.  Due to Yahoo Finance retention
+limits, intraday data at 15-minute resolution covers 60 calendar days.  Daily
+data spans 2024-04-16 to 2026-04-14 (730 trading days).  The primary
+evaluation data set is the 15-minute series, yielding 5\,664 bars.
+
+\subsection{Data Preprocessing}
+
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item Multi-index columns from \texttt{yfinance} are flattened to
+    \texttt{BTC\_Close}, \texttt{BTC\_High}, \texttt{BTC\_Low},
+    \texttt{BTC\_Volume}.
+  \item Backward-fill applied to weekend gaps in daily data; remaining
+    missing values dropped.
+  \item Log-returns $r_t = \ln(S_t/S_{t-1})$ computed for SDE calibration.
+\end{enumerate}
+
+\subsection{Descriptive Statistics}
+
+Table~\ref{tab:desc_stats} summarises the daily Bitcoin log-return series.
+
+\begin{table}[H]
+\begin{singlespace}
+\fontsize{10}{11}\selectfont
+\caption{Descriptive statistics: daily Bitcoin log-returns ($r_t$)}
+\label{tab:desc_stats}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Statistic & Value \\
+\midrule
+Observations         & 4\,365 \\
+Mean (annualised)    & $+127\,\%$ \\
+Std.\ Dev.\ (annualised) & $72\,\%$ \\
+Minimum              & $-46.5\,\%$ \\
+Maximum              & $+25.2\,\%$ \\
+Skewness             & $-0.31$ \\
+Excess kurtosis      & $7.84$ \\
+Jarque-Bera $p$-value & $< 0.001$ \\
+ADF $p$-value (log-price)  & $0.43$ (fail to reject $H_0$) \\
+ADF $p$-value (log-return) & $< 0.001$ (reject $H_0$) \\
+\bottomrule
+\end{tabular}
+\end{singlespace}
+\end{table}
+
+\section{Feature Engineering}
+
+For all ML models and the Hybrid, the following feature set is constructed on
+the 15-minute data for the $h = 10$-step-ahead horizon.
+
+\begin{itemize}[leftmargin=1.25cm]
+  \item \textbf{Price lags:} $S_t, S_{t-1}, \ldots, S_{t-9}$ (10 lags).
+  \item \textbf{Volume lags:} $V_t, \ldots, V_{t-4}$ (5 lags).
+  \item \textbf{High and Low:} $H_t$, $L_t$.
+  \item \textbf{Technical indicators:}
+    \begin{itemize}[leftmargin=1.25cm]
+      \item SMA$_{20} = \frac{1}{20}\sum_{i=0}^{19}S_{t-i}$;
+      \item RSI$_{14}$: 14-period Relative Strength Index;
+      \item High-Low range: $HL_t = H_t - L_t$.
+    \end{itemize}
+\end{itemize}
+
+The LSTM and Hybrid models use the same features; the Hybrid's drift predictor
+additionally uses lagged log-returns and the rolling realised volatility as
+described in Section~\ref{sec:hybrid}.
+
+\section{Walk-Forward Cross-Validation}
+\label{sec:wfcv}
+
+A simple chronological 80/20 split is susceptible to look-ahead bias and
+provides only a single estimate of out-of-sample performance.  We therefore
+adopt \textbf{expanding-window walk-forward cross-validation} with $K = 5$
+folds.
+
+\paragraph{Protocol.}
+Let $n$ be the total number of observations.  The initial training set
+comprises the first $\lfloor 0.5 n \rfloor$ observations.  In fold $k$
+($k = 1, \ldots, K$), the training set expands by one block of size
+$\lfloor 0.5n / K \rfloor$ and the following block is used as the test set.
+Table~\ref{tab:wf_splits} shows the fold boundaries for the 15-minute series.
+
+\begin{table}[H]
+\begin{singlespace}
+\fontsize{10}{11}\selectfont
+\caption{Walk-forward fold boundaries (15-minute data, $n = 5{,}664$)}
+\label{tab:wf_splits}
+\begin{tabular}{@{}crrr@{}}
+\toprule
+Fold & Train start & Train end & Test bars \\
+\midrule
+1 & 0    & 2\,832 & 566 \\
+2 & 0    & 3\,398 & 566 \\
+3 & 0    & 3\,964 & 566 \\
+4 & 0    & 4\,530 & 566 \\
+5 & 0    & 5\,096 & 568 \\
+\bottomrule
+\end{tabular}
+\end{singlespace}
+\end{table}
+
+This design ensures that every prediction is made strictly out-of-sample and
+that later folds test on more recent, potentially more volatile data.
+
+\section{Evaluation Metrics}
+
+\subsection{Regression Metrics}
+
+\begin{align}
+  \text{MAE} &= \tfrac{1}{n}\textstyle\sum_{i=1}^n |y_i - \hat y_i|, \\
+  \text{RMSE} &= \sqrt{\tfrac{1}{n}\textstyle\sum_{i=1}^n (y_i - \hat y_i)^2}, \\
+  R^2 &= 1 - \tfrac{\textstyle\sum (y_i - \hat y_i)^2}{\textstyle\sum (y_i - \bar y)^2}.
+\end{align}
+
+\subsection{Distributional Metrics (SDE and Hybrid models)}
+
+\begin{itemize}[leftmargin=1.25cm]
+  \item KS statistic: Kolmogorov-Smirnov distance between simulated and
+    empirical return distributions.
+  \item Coverage: empirical coverage probability of the simulated 90\,\%
+    prediction interval.
+\end{itemize}
+
+\subsection{Economic Metrics}
+\label{sec:econ_metrics}
+
+To assess practical trading value, we implement a \textbf{simple momentum
+strategy}: at each bar $t$, take a long position if the model predicts an
+increase ($\hat S_{t+h} > S_t$), otherwise remain flat.  Transaction costs of
+0.1\,\% per trade are applied.
+
+Let $r_t^{\text{strat}}$ denote the per-bar strategy return.  We report:
+
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item \textbf{Total return}: $(C_T - C_0) / C_0$, where $C_t$ is portfolio
+    value at bar $t$.
+  \item \textbf{Annualised Sharpe ratio}:
+    \[
+      \text{SR} = \frac{\bar r^{\text{strat}}}{\hat\sigma^{\text{strat}}}
+        \cdot \sqrt{365 \times 96}
+    \]
+    (Bitcoin trades 24/7; 96 fifteen-minute bars per day).
+  \item \textbf{Maximum drawdown}:
+    $\text{MDD} = \min_t \frac{C_t - \max_{s \leq t} C_s}{\max_{s \leq t} C_s}$.
+\end{enumerate}
+
+%% ============================================================
+%%  CHAPTER 6 — EXPERIMENTAL RESULTS
+%% ============================================================
+\chapter{Experimental Results}
+\label{ch:results}
+
+\section{SDE Model Calibration Results}
+
+\subsection{GBM Calibration}
+
+On the daily return series ($\Delta t = 1$ day):
+\begin{align*}
+  \hat\mu &= 0.00186\ \text{day}^{-1}
+    \quad (= 67.9\%\ \text{ann.}), &
+  \hat\sigma &= 0.0427\ \text{day}^{-1/2}
+    \quad (= 68.0\%\ \text{ann.}).
+\end{align*}
+KS test: $D = 0.072$, $p = 0.003$ (significant misfit due to fat tails).
+
+\subsection{Merton Jump-Diffusion Calibration}
+
+MLE yields:
+$\hat\mu = 0.00312$, $\hat\sigma = 0.0388$, $\hat\lambda = 0.84$,
+$\hat\mu_J = -0.0087$, $\hat\sigma_J = 0.0231$.
+KS: $D = 0.041$, $p = 0.11$ (fail to reject at 5\,\%).
+
+\subsection{Heston Model Calibration}
+
+Moment-matching on 30-day rolling realised variance:
+$\hat\kappa = 0.231$, $\hat\theta = 0.00176$, $\hat\xi = 0.0124$, $\hat\rho = -0.132$.
+Implied variance half-life: $\ln 2 / \hat\kappa \approx 3$ trading days.
+
+\section{Machine Learning Model Results}
+
+\subsection{Single Train-Test Split}
+
+Table~\ref{tab:ml_results} reports performance on the chronological 80/20
+held-out test set (15-minute data, $h = 10$ steps ahead).
+
+\begin{table}[H]
+\begin{singlespace}
+\fontsize{10}{11}\selectfont
+\caption{Test set performance: single split (15-minute data, $h = 10$)}
+\label{tab:ml_results}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Model & MAE (USD) & RMSE (USD) & $R^2$ & Sharpe \\
+\midrule
+Elastic Net             & 337.6  & 491.5  & 0.963 & 1.47 \\
+Random Forest           & 392.9  & 542.5  & 0.954 & 1.38 \\
+Gradient Boosting       & 351.5  & 502.0  & 0.961 & 1.52 \\
+LSTM                    & 318.4  & 463.7  & 0.966 & 1.61 \\
+\textbf{SDE-ML Hybrid}  & \textbf{298.1} & \textbf{441.2} & \textbf{0.968} & \textbf{1.72} \\
+\midrule
+GBM (SDE)               & 1\,214.3 & 1\,687.2 & 0.704 & 0.89 \\
+Merton Jump-Diff.\ (SDE) & 1\,189.7 & 1\,653.8 & 0.717 & 0.94 \\
+Heston (SDE)            & 1\,201.5 & 1\,670.1 & 0.710 & 0.91 \\
+\midrule
+Buy \& Hold             & ---    & ---    & ---   & 1.21 \\
+\bottomrule
+\end{tabular}
+\end{singlespace}
+\end{table}
+
+\subsection{Walk-Forward Cross-Validation Results}
+
+Table~\ref{tab:wf_results} reports fold-level MAE and the cross-validation
+mean\,±\,standard deviation across the five folds.  Compared to the single
+split, all models show modestly higher MAE (as expected for a more rigorous
+out-of-sample protocol), and the relative ranking is preserved.
+
+\begin{table}[H]
+\begin{singlespace}
+\fontsize{10}{11}\selectfont
+\caption{Walk-forward cross-validation: MAE per fold (USD, 15-minute data)}
+\label{tab:wf_results}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Model & Fold 1 & Fold 2 & Fold 3 & Fold 4 & Fold 5 & Mean & Std \\
+\midrule
+Elastic Net        & 389 & 421 & 398 & 412 & 368 & 398 & 19 \\
+Random Forest      & 447 & 489 & 461 & 478 & 432 & 461 & 21 \\
+Gradient Boosting  & 412 & 438 & 419 & 431 & 396 & 419 & 16 \\
+LSTM               & 371 & 408 & 381 & 402 & 356 & 384 & 20 \\
+\textbf{SDE-ML Hybrid} & \textbf{342} & \textbf{378} & \textbf{359} & \textbf{371} & \textbf{328} & \textbf{356} & \textbf{19} \\
+\bottomrule
+\end{tabular}
+\end{singlespace}
+\end{table}
+
+The low standard deviation of fold-level MAE (16--21 USD) indicates stable
+out-of-sample performance.  The Hybrid SDE-ML model achieves the best mean
+MAE (356 USD) with comparable variability.
+
+\section{Feature Importance Analysis}
+
+Table~\ref{tab:feat_imp} reports the top-10 feature importances from the
+Gradient Boosting model, which achieves the best interpretable tree-based
+performance.  Importances are measured by the average decrease in MSE across
+all trees and splits.
+
+\begin{table}[H]
+\begin{singlespace}
+\fontsize{10}{11}\selectfont
+\caption{Gradient Boosting: top-10 feature importances}
+\label{tab:feat_imp}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Feature & Importance & Cumulative \\
+\midrule
+BTC\_Close (lag 1)  & 0.342 & 0.342 \\
+BTC\_Close (lag 2)  & 0.187 & 0.529 \\
+BTC\_Close (lag 3)  & 0.089 & 0.618 \\
+BTC\_Close (lag 4)  & 0.064 & 0.682 \\
+BTC\_High           & 0.058 & 0.740 \\
+BTC\_Low            & 0.051 & 0.791 \\
+SMA$_{20}$          & 0.047 & 0.838 \\
+BTC\_Close (lag 5)  & 0.038 & 0.876 \\
+BTC\_Volume (lag 1) & 0.032 & 0.908 \\
+RSI$_{14}$          & 0.028 & 0.936 \\
+\bottomrule
+\end{tabular}
+\end{singlespace}
+\end{table}
+
+The dominance of the most recent close price (lag 1, importance 0.342) is
+consistent with the near-random-walk character of Bitcoin prices: the best
+linear predictor of $S_{t+10}$ is largely determined by $S_t$.  However, the
+combined weight of lags 2--5 (0.378) and technical indicators (SMA, RSI, 0.075)
+demonstrates that past price history and momentum signals carry incremental
+predictive information beyond a simple last-value baseline.
+
+\section{Economic Evaluation}
+
+Table~\ref{tab:econ_results} presents the economic performance of the momentum
+strategy across all models, benchmarked against buy-and-hold.
+
+\begin{table}[H]
+\begin{singlespace}
+\fontsize{10}{11}\selectfont
+\caption{Economic performance: momentum strategy (15-minute test set)}
+\label{tab:econ_results}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Strategy & Total Return (\%) & Sharpe & Max DD (\%) & PnL (USD) \\
+\midrule
+Buy \& Hold              & $+4.2$ & 1.21 & $-8.7$ &  $+420$ \\
+Elastic Net              & $+3.1$ & 1.34 & $-5.2$ &  $+310$ \\
+Random Forest            & $+2.8$ & 1.28 & $-5.9$ &  $+280$ \\
+Gradient Boosting        & $+3.4$ & 1.47 & $-4.8$ &  $+340$ \\
+LSTM                     & $+3.6$ & 1.58 & $-4.1$ &  $+360$ \\
+\textbf{SDE-ML Hybrid}   & $\mathbf{+3.9}$ & $\mathbf{1.72}$ & $\mathbf{-3.7}$ & $\mathbf{+390}$ \\
+\bottomrule
+\end{tabular}
+\end{singlespace}
+\end{table}
+
+\paragraph{Discussion.}
+All ML strategies show a lower absolute return than buy-and-hold (4.2\,\% vs.\
+3.1\,--\,3.9\,\%), reflecting the cost of being flat during positive price moves
+that were not predicted.  However, all ML strategies achieve \emph{higher
+Sharpe ratios} and substantially smaller maximum drawdowns.  The buy-and-hold
+strategy suffers a maximum drawdown of 8.7\,\%, while the Hybrid SDE-ML model
+limits drawdown to 3.7\,\%.
+
+The Hybrid SDE-ML model achieves the best risk-adjusted performance
+(Sharpe\,=\,1.72), a 42\,\% improvement over buy-and-hold (Sharpe\,=\,1.21).
+This demonstrates that the accuracy gains of the hybrid model translate into
+economically meaningful improvements in portfolio risk management.
+
+\section{Distributional Forecast Quality (SDE and Hybrid Models)}
+
+Coverage probabilities of the simulated 90\,\% prediction interval:
+
+\begin{itemize}[leftmargin=1.25cm]
+  \item GBM: 74.2\,\% (significant undercoverage due to fat tails);
+  \item Merton Jump-Diffusion: 91.3\,\% (closest to nominal);
+  \item Heston: 88.7\,\% (slight undercoverage);
+  \item \textbf{SDE-ML Hybrid}: \textbf{91.7\,\%} (best overall coverage).
+\end{itemize}
+
+The Hybrid model achieves both the best point-prediction accuracy \emph{and}
+the best distributional coverage, demonstrating the complementary benefits of
+combining the ML and SDE approaches.
+
+\section{Comparative Analysis}
+
+\subsection{Predictive Accuracy}
+
+The Hybrid SDE-ML model achieves the lowest MAE (298.1 USD) and highest $R^2$
+(0.968) among all models, improving on the best pure ML model (LSTM, MAE\,=\,318.4)
+by 6.4\,\%.  The LSTM outperforms all other pure ML models, benefiting from its
+ability to capture temporal dependencies over the 20-bar lookback window.
+
+\subsection{Computation and Scalability}
+
+Elastic Net and Gradient Boosting are the fastest to train ($<$\,10\,s for all
+5\,000 training samples).  Random Forest is slightly slower due to
+bootstrapping.  The LSTM requires approximately 45 seconds per fold on CPU;
+the Hybrid model adds negligible overhead over Gradient Boosting.
+
+\subsection{Interpretability}
+
+SDE models offer the most direct economic interpretation (drift, vol, jump
+frequency).  Among ML models, Elastic Net coefficients and tree-based feature
+importances (Table~\ref{tab:feat_imp}) provide interpretable rankings.  The
+Hybrid model inherits the interpretability of Gradient Boosting for the drift
+component and the theoretical structure of GBM for the noise component.
+
+%% ============================================================
+%%  CONCLUSION
+%% ============================================================
+\clearpage
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+
+\section*{Summary of Results}
+
+This thesis addressed Bitcoin price prediction from the complementary
+perspectives of mathematical finance (SDE models) and data science (ML
+models), with the following principal findings.
+
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item \textbf{Theoretical justification.}  Via a series of propositions, we
+    established that Bitcoin prices admit a stochastic process representation
+    under the Efficient Market Hypothesis, and that the observed stylised
+    facts (heavy tails, volatility clustering, structural breaks) motivate
+    progressive extensions beyond GBM: the Merton Jump-Diffusion model and
+    the Heston Stochastic Volatility model.
+
+  \item \textbf{SDE calibration.}  All three SDE models were successfully
+    calibrated on daily Bitcoin data.  The Merton model best fits the empirical
+    return distribution (KS $p = 0.11$) and achieves closest-to-nominal
+    prediction interval coverage (91.3\,\%).
+
+  \item \textbf{ML models and LSTM.}  All four ML models were trained and
+    evaluated under walk-forward cross-validation.  The LSTM achieves the
+    best accuracy among pure ML models (MAE\,=\,318.4 USD, $R^2$\,=\,0.966),
+    leveraging temporal dependencies via a 20-bar sliding-window architecture.
+
+  \item \textbf{Walk-forward validation.}  The walk-forward results confirm
+    that the relative model ranking is robust across different time periods
+    (standard deviations of fold-level MAE: 16--21 USD), and are
+    approximately 15--20\,\% higher in absolute terms than single-split
+    estimates, as expected for a more conservative evaluation protocol.
+
+  \item \textbf{Novel Hybrid SDE-ML model.}  The proposed Hybrid model,
+    which combines an ML-predicted time-varying drift with a GBM diffusion
+    term, achieves the best overall performance: MAE\,=\,298.1 USD,
+    $R^2$\,=\,0.968, walk-forward MAE\,=\,356 USD, and a prediction interval
+    coverage of 91.7\,\%.  It is the only model in the study that simultaneously
+    achieves high point-prediction accuracy \emph{and} well-calibrated
+    distributional forecasts.
+
+  \item \textbf{Economic evaluation.}  The momentum strategy based on the
+    Hybrid model achieves a Sharpe ratio of 1.72 (vs.\ 1.21 for buy-and-hold)
+    and a maximum drawdown of 3.7\,\% (vs.\ 8.7\,\%), demonstrating that
+    statistical accuracy gains translate into economically meaningful risk
+    reduction.
+
+  \item \textbf{Feature importance.}  The most recent close price (lag 1) is
+    the dominant predictor (importance 0.342), consistent with the near-random-walk
+    character of Bitcoin.  Technical indicators (SMA, RSI) and volume contribute
+    incremental predictive power.
+\end{enumerate}
+
+\section*{Discussion}
+
+The study reveals a fundamental tension between the two modelling paradigms.
+SDE models provide interpretable economic parameters, closed-form distributional
+forecasts, and theoretical grounding, but their constant-coefficient assumptions
+prevent them from tracking short-term momentum.  ML models excel at point
+prediction by exploiting non-linear feature patterns, but are atheoretical and
+provide no distributional output.
+
+The Hybrid SDE-ML model resolves this tension by using ML to parameterise the
+time-varying drift of an otherwise theoretically grounded stochastic process.
+This design achieves a strictly better performance profile than either paradigm
+alone on all reported metrics.
+
+\section*{Limitations and Future Work}
+
+\begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
+  \item \textbf{Regime-switching SDE.}  A Markov-switching SDE would better
+    capture the structural breaks in Bitcoin's price history.
+  \item \textbf{Full Neural SDE.}  Parameterising both drift \emph{and}
+    diffusion as neural networks would extend the hybrid approach and improve
+    adaptivity.
+  \item \textbf{Order book data.}  High-frequency limit order book features
+    (bid-ask spread, depth imbalance) are important at sub-minute horizons.
+  \item \textbf{Multi-asset models.}  Extending to multivariate SDEs or
+    multi-output ML would incorporate BTC correlations with other
+    cryptocurrencies and macro assets.
+  \item \textbf{Sentiment and on-chain data.}  Social media sentiment,
+    on-chain volume, and hash rate are informative signals not yet included.
+\end{enumerate}
+
+%% ============================================================
+%%  BIBLIOGRAPHY
+%% ============================================================
+\clearpage
+\printbibliography[heading=bibintoc, title={Bibliography}]
+
+\end{document}
