@@ -5,11 +5,20 @@ import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.stats import randint, uniform
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.linear_model import ElasticNet
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
+
+from src.evaluation.metrics import regression_metrics
 
 
-class HybridSDEMLModel:
+def _positive_ratio(values: np.ndarray) -> float:
+    return float(np.sum(values > 0)) / max(len(values), 1)
+
+
+class BaseHybridSDEMLModel:
     """
     SDE-ML Hybrid Model with time-varying ML-predicted drift (novelty element).
 
@@ -45,25 +54,20 @@ class HybridSDEMLModel:
 
     def __init__(
         self,
+        model_name: str,
+        drift_model,
         rv_window: int = 20,
         n_lag_returns: int = 10,
-        gb_n_estimators: int = 200,
-        gb_learning_rate: float = 0.05,
-        gb_max_depth: int = 3,
         random_state: int = 42,
     ):
-        self.model_name = "SDE-ML Hybrid"
+        self.model_name = model_name
         self.rv_window = rv_window
         self.n_lag_returns = n_lag_returns
         self.random_state = random_state
-
-        self._drift_model = GradientBoostingRegressor(
-            n_estimators=gb_n_estimators,
-            learning_rate=gb_learning_rate,
-            max_depth=gb_max_depth,
-            random_state=random_state,
-        )
+        self._drift_model = drift_model
         self.is_fitted = False
+        self.best_params_: dict | None = None
+        self.search_results_ = None
 
     # ------------------------------------------------------------------
     # Feature construction
@@ -74,7 +78,7 @@ class HybridSDEMLModel:
             pd.Series(log_returns)
             .rolling(self.rv_window, min_periods=self.rv_window)
             .std()
-            .fillna(method="bfill")
+            .bfill()
             .values
         ) / math.sqrt(dt)
 
@@ -94,7 +98,7 @@ class HybridSDEMLModel:
             lags = log_returns[i - lag : i][::-1]
             rv_val = float(rv[i]) if i < len(rv) else float(rv[-1])
             window_14 = log_returns[max(0, i - 14) : i]
-            rsi = float(np.sum(window_14 > 0)) / max(len(window_14), 1)
+            rsi = _positive_ratio(window_14)
             rows.append(np.concatenate([lags, [rv_val, rsi]]))
         return np.array(rows, dtype=np.float32)
 
@@ -102,7 +106,7 @@ class HybridSDEMLModel:
     # Training
     # ------------------------------------------------------------------
 
-    def fit(self, prices: np.ndarray, dt: float = 1.0) -> "HybridSDEMLModel":
+    def fit(self, prices: np.ndarray, dt: float = 1.0) -> "BaseHybridSDEMLModel":
         """Calibrate the hybrid model on a historical price series."""
         prices = np.asarray(prices, dtype=float)
         log_returns = np.diff(np.log(prices))
@@ -116,6 +120,44 @@ class HybridSDEMLModel:
         y = log_returns[lag:]                        # predict next bar log-return
 
         self._drift_model.fit(X, y)
+        self.is_fitted = True
+        return self
+
+    def tune(
+        self,
+        prices: np.ndarray,
+        param_distributions: dict,
+        dt: float = 1.0,
+        n_iter: int = 20,
+        cv_splits: int = 3,
+        scoring: str = "neg_mean_absolute_error",
+        n_jobs: int = -1,
+        verbose: int = 1,
+    ) -> "BaseHybridSDEMLModel":
+        prices = np.asarray(prices, dtype=float)
+        log_returns = np.diff(np.log(prices))
+        rv = self._compute_rv(log_returns, dt)
+        lag = self.n_lag_returns
+        X = self._build_features(log_returns, rv)
+        y = log_returns[lag:]
+
+        search = RandomizedSearchCV(
+            estimator=self._drift_model,
+            param_distributions=param_distributions,
+            n_iter=n_iter,
+            scoring=scoring,
+            cv=TimeSeriesSplit(n_splits=cv_splits),
+            random_state=self.random_state,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            refit=True,
+        )
+        search.fit(X, y)
+        self._drift_model = search.best_estimator_
+        self.best_params_ = search.best_params_
+        self.search_results_ = pd.DataFrame(search.cv_results_).sort_values(
+            "rank_test_score"
+        )
         self.is_fitted = True
         return self
 
@@ -210,11 +252,7 @@ class HybridSDEMLModel:
         lag = self.n_lag_returns
         y_true = prices[lag + horizon : lag + horizon + len(y_pred)]
 
-        mae = mean_absolute_error(y_true, y_pred)
-        rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-        r2 = r2_score(y_true, y_pred)
-
-        return {"model": self.model_name, "MAE": mae, "RMSE": rmse, "R2": r2}
+        return {"model": self.model_name, **regression_metrics(y_true, y_pred)}
 
     # ------------------------------------------------------------------
     # Feature importance
@@ -224,7 +262,11 @@ class HybridSDEMLModel:
     def feature_importances_(self) -> np.ndarray:
         if not self.is_fitted:
             raise RuntimeError("Model must be fitted first.")
-        return self._drift_model.feature_importances_
+        if hasattr(self._drift_model, "feature_importances_"):
+            return self._drift_model.feature_importances_
+        if hasattr(self._drift_model, "coef_"):
+            return np.abs(np.asarray(self._drift_model.coef_)).reshape(-1)
+        raise AttributeError("Drift model does not expose importances or coefficients.")
 
     def feature_importance_df(self) -> pd.DataFrame:
         lag = self.n_lag_returns
@@ -261,3 +303,120 @@ class HybridSDEMLModel:
         plt.grid(True)
         plt.tight_layout()
         plt.show()
+
+
+class HybridSDEMLModel(BaseHybridSDEMLModel):
+    def __init__(
+        self,
+        rv_window: int = 20,
+        n_lag_returns: int = 10,
+        gb_n_estimators: int = 200,
+        gb_learning_rate: float = 0.05,
+        gb_max_depth: int = 3,
+        random_state: int = 42,
+    ):
+        super().__init__(
+            model_name="Hybrid SDE-ML (GBM + GradientBoosting drift)",
+            drift_model=GradientBoostingRegressor(
+                n_estimators=gb_n_estimators,
+                learning_rate=gb_learning_rate,
+                max_depth=gb_max_depth,
+                random_state=random_state,
+            ),
+            rv_window=rv_window,
+            n_lag_returns=n_lag_returns,
+            random_state=random_state,
+        )
+
+    @staticmethod
+    def tuning_space() -> dict:
+        return {
+            "n_estimators": randint(100, 500),
+            "learning_rate": uniform(0.01, 0.19),
+            "max_depth": randint(2, 6),
+            "subsample": uniform(0.7, 0.3),
+            "min_samples_leaf": randint(1, 10),
+        }
+
+
+class HybridSDEElasticNetModel(BaseHybridSDEMLModel):
+    def __init__(
+        self,
+        rv_window: int = 20,
+        n_lag_returns: int = 10,
+        alpha: float = 0.001,
+        l1_ratio: float = 0.5,
+        random_state: int = 42,
+    ):
+        super().__init__(
+            model_name="Hybrid SDE-ML (GBM + ElasticNet drift)",
+            drift_model=ElasticNet(
+                alpha=alpha,
+                l1_ratio=l1_ratio,
+                random_state=random_state,
+                max_iter=10000,
+            ),
+            rv_window=rv_window,
+            n_lag_returns=n_lag_returns,
+            random_state=random_state,
+        )
+
+    @staticmethod
+    def tuning_space() -> dict:
+        return {
+            "alpha": np.logspace(-5, 0, 100),
+            "l1_ratio": np.linspace(0.05, 0.95, 19),
+        }
+
+
+class HybridSDERandomForestModel(BaseHybridSDEMLModel):
+    def __init__(
+        self,
+        rv_window: int = 20,
+        n_lag_returns: int = 10,
+        n_estimators: int = 300,
+        max_depth: int | None = 6,
+        random_state: int = 42,
+    ):
+        super().__init__(
+            model_name="Hybrid SDE-ML (GBM + RandomForest drift)",
+            drift_model=RandomForestRegressor(
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                random_state=random_state,
+                n_jobs=-1,
+            ),
+            rv_window=rv_window,
+            n_lag_returns=n_lag_returns,
+            random_state=random_state,
+        )
+
+    @staticmethod
+    def tuning_space() -> dict:
+        return {
+            "n_estimators": randint(150, 600),
+            "max_depth": randint(3, 16),
+            "min_samples_split": randint(2, 12),
+            "min_samples_leaf": randint(1, 8),
+            "max_features": ["sqrt", "log2", None],
+        }
+
+
+def compare_hybrid_models(
+    prices: np.ndarray,
+    horizon: int = 10,
+    dt: float = 1.0,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    models = [
+        HybridSDEMLModel(random_state=random_state),
+        HybridSDEElasticNetModel(random_state=random_state),
+        HybridSDERandomForestModel(random_state=random_state),
+    ]
+
+    results = []
+    for model in models:
+        model.fit(prices, dt=dt)
+        results.append(model.evaluate(prices, horizon=horizon, dt=dt))
+
+    return pd.DataFrame(results).sort_values("MAE").reset_index(drop=True)

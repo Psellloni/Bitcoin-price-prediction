@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from scipy.stats import randint, uniform
 from sklearn.ensemble import GradientBoostingRegressor
 
 from src.models.base_model import BaseRegressionModel
@@ -25,3 +26,13 @@ class GradientBoostingModel(BaseRegressionModel):
         self.model.fit(X_train, y_train)
         self.is_fitted = True
         return self
+
+    @staticmethod
+    def tuning_space() -> dict:
+        return {
+            "n_estimators": randint(100, 500),
+            "learning_rate": uniform(0.01, 0.19),
+            "max_depth": randint(2, 6),
+            "subsample": uniform(0.7, 0.3),
+            "min_samples_leaf": randint(1, 10),
+        }

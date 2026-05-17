@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 from sklearn.linear_model import ElasticNet
 
 from src.models.base_model import BaseRegressionModel
@@ -23,3 +24,10 @@ class ElasticNetModel(BaseRegressionModel):
         self.model.fit(X_train, y_train)
         self.is_fitted = True
         return self
+
+    @staticmethod
+    def tuning_space() -> dict:
+        return {
+            "alpha": np.logspace(-5, 0, 100),
+            "l1_ratio": np.linspace(0.05, 0.95, 19),
+        }

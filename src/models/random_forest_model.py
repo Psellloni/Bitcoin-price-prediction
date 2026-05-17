@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from scipy.stats import randint
 from sklearn.ensemble import RandomForestRegressor
 
 from src.models.base_model import BaseRegressionModel
@@ -25,3 +26,13 @@ class RandomForestModel(BaseRegressionModel):
         self.model.fit(X_train, y_train)
         self.is_fitted = True
         return self
+
+    @staticmethod
+    def tuning_space() -> dict:
+        return {
+            "n_estimators": randint(150, 600),
+            "max_depth": randint(3, 16),
+            "min_samples_split": randint(2, 12),
+            "min_samples_leaf": randint(1, 8),
+            "max_features": ["sqrt", "log2", None],
+        }

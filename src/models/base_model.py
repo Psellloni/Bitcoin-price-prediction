@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 
 
 class BaseRegressionModel:
@@ -12,9 +13,43 @@ class BaseRegressionModel:
         self.model_name = model_name
         self.model = None
         self.is_fitted = False
+        self.best_params_: dict | None = None
+        self.search_results_ = None
 
     def fit(self, X_train, y_train, X_val=None, y_val=None):
         raise NotImplementedError
+
+    def tune(
+        self,
+        X_train,
+        y_train,
+        param_distributions: dict,
+        n_iter: int = 20,
+        cv_splits: int = 3,
+        scoring: str = "neg_mean_absolute_error",
+        random_state: int = 42,
+        n_jobs: int = -1,
+        verbose: int = 1,
+    ):
+        search = RandomizedSearchCV(
+            estimator=self.model,
+            param_distributions=param_distributions,
+            n_iter=n_iter,
+            scoring=scoring,
+            cv=TimeSeriesSplit(n_splits=cv_splits),
+            random_state=random_state,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            refit=True,
+        )
+        search.fit(X_train, y_train)
+        self.model = search.best_estimator_
+        self.best_params_ = search.best_params_
+        self.search_results_ = pd.DataFrame(search.cv_results_).sort_values(
+            "rank_test_score"
+        )
+        self.is_fitted = True
+        return self
 
     def predict(self, X):
         if not self.is_fitted:
