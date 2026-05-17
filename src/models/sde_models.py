@@ -20,6 +20,7 @@ class BaseSDEModel(ABC):
         self.random_state = random_state
         self.params: dict = {}
         self.is_fitted = False
+        self.default_n_paths = 1000
 
     @abstractmethod
     def fit(self, prices: np.ndarray, dt: float = 1.0) -> "BaseSDEModel":
@@ -86,6 +87,7 @@ class BaseSDEModel(ABC):
         lines = [f"=== {self.model_name} ==="]
         for k, v in self.params.items():
             lines.append(f"  {k:12s}: {v:.6f}")
+        lines.append(f"  {'n_paths':12s}: {self.default_n_paths:d}")
         return "\n".join(lines)
 
     # ------------------------------------------------------------------
@@ -342,6 +344,7 @@ class HestonModel(BaseSDEModel):
     def __init__(self, random_state: int = 42, rv_window: int = 30):
         super().__init__("Heston Stochastic Volatility", random_state)
         self.rv_window = rv_window
+        self.calibration_dt: float | None = None
         self.mu: float | None = None
         self.kappa: float | None = None
         self.theta: float | None = None
@@ -350,8 +353,17 @@ class HestonModel(BaseSDEModel):
         self.v0: float | None = None
 
     def fit(self, prices: np.ndarray, dt: float = 1.0) -> "HestonModel":
+        """
+        Calibrate the Heston model directly on the frequency of the input data.
+
+        Important: this implementation does not fit on daily data and then
+        rescale parameters to intraday frequency.  Instead, the caller should
+        pass the price series at the target frequency together with the
+        corresponding time step, e.g. dt=1/96 for 15-minute crypto bars.
+        """
         log_returns = np.diff(np.log(prices))
         n = len(log_returns)
+        self.calibration_dt = dt
 
         # Drift
         var_r = np.var(log_returns, ddof=1)
@@ -408,6 +420,7 @@ class HestonModel(BaseSDEModel):
             "xi": self.xi,
             "rho": self.rho,
             "v0": self.v0,
+            "dt": self.calibration_dt,
         }
         self.is_fitted = True
         return self
