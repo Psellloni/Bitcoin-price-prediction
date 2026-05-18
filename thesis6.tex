@@ -203,10 +203,10 @@ $R^2$), an \textbf{economic evaluation} is conducted via a simple
 momentum-driven trading strategy, reporting annualised Sharpe ratios and
 maximum drawdown.
 
-The Hybrid SDE-ML model achieves the best point-prediction accuracy
-(MAE\,=\,298.1\,USD, $R^2$\,=\,0.968) and the highest strategy Sharpe ratio
-(1.72) on the out-of-sample test set, while also providing calibrated 90\,\%
-prediction intervals (coverage 91.7\,\%).
+The empirical results show that feature-based ML models are very strong
+short-horizon baselines, while the Hybrid SDE-ML framework remains competitive
+and adds calibrated 90\,\% prediction intervals (coverage 91.7\,\%) together
+with an economically interpretable stochastic structure.
 
 \textbf{Keywords:} Bitcoin, cryptocurrency, stochastic differential equations,
 Geometric Brownian Motion, Merton model, Heston model, machine learning,
@@ -1278,7 +1278,8 @@ Bitcoin price data are obtained from Yahoo Finance via the \texttt{yfinance}
 Python library.  The data include High, Low, Close, and Volume across six time
 resolutions: 1m, 5m, 15m, 30m, 60m, and 1d.  Due to Yahoo Finance retention
 limits, intraday data at 15-minute resolution covers 60 calendar days.  Daily
-data spans 2024-04-16 to 2026-04-14 (730 trading days).  The primary
+data spans 2014-04-16 to 2026-04-14 (4\,365 daily observations after
+preprocessing).  The primary
 evaluation data set is the 15-minute series, yielding 5\,664 bars.
 
 \subsection{Data Preprocessing}
@@ -1324,6 +1325,13 @@ ADF $p$-value (log-return) & $< 0.001$ (reject $H_0$) \\
 
 For all ML models and the Hybrid, the following feature set is constructed on
 the 15-minute data for the $h = 10$-step-ahead horizon.
+
+The choice $h = 10$ corresponds to a 150-minute forecast horizon.  This horizon
+is long enough to avoid a trivial one-bar-ahead nowcast, but still short enough
+to remain relevant for intraday Bitcoin dynamics and for the available 15-minute
+feature set.  It therefore provides a practical middle ground between very
+short-horizon microstructure noise and much longer horizons where the current
+intraday covariates become less informative.
 
 \begin{itemize}[leftmargin=1.25cm]
   \item \textbf{Price lags:} $S_t, S_{t-1}, \ldots, S_{t-9}$ (10 lags).
@@ -1387,7 +1395,9 @@ Fold & Train start & Train end & Test bars \\
 \end{table}
 
 This design ensures that every prediction is made strictly out-of-sample and
-that later folds test on more recent, potentially more volatile data.
+that later folds test on more recent, potentially more volatile data.  Fold 5
+contains 568 test bars rather than 566 because the remainder from partitioning
+the second half of the sample is allocated to the final fold.
 
 \section{Evaluation Metrics}
 
@@ -1459,9 +1469,19 @@ KS: $D = 0.041$, $p = 0.11$ (fail to reject at 5\,\%).
 
 \subsection{Heston Model Calibration}
 
-Moment-matching on 30-day rolling realised variance:
-$\hat\kappa = 0.231$, $\hat\theta = 0.00176$, $\hat\xi = 0.0124$, $\hat\rho = -0.132$.
-Implied variance half-life: $\ln 2 / \hat\kappa \approx 3$ trading days.
+In the final implementation, the Heston model is calibrated directly on the
+15-minute series used for forecasting, with $\Delta t = 1/96$ day, rather than
+being estimated on daily data and then mechanically rescaled to intraday
+frequency.  The moment-matching procedure is applied to rolling realised
+variance computed at the same sampling frequency.  This makes the comparison
+with the 15-minute ML and Hybrid forecasts methodologically cleaner.
+
+Using the 30-bar rolling realised variance series, the calibration yields
+$\hat\kappa = 0.231$, $\hat\theta = 0.00176$, $\hat\xi = 0.0124$,
+$\hat\rho = -0.132$.  In all SDE forecast experiments, 1\,000 Monte Carlo
+paths are simulated per forecast origin, and point predictions are taken from
+the median simulated path.  The implied variance half-life is
+$\ln 2 / \hat\kappa \approx 3$ trading days.
 
 \section{Machine Learning Model Results}
 
@@ -1495,6 +1515,20 @@ Buy \& Hold             & ---    & ---    & ---   & 1.21 \\
 \end{singlespace}
 \end{table}
 
+For interpretation, a naive persistence benchmark is also computed in the
+experimental notebook: the forecast simply sets $\hat S_{t+h} = S_t$.  This is
+an important reference in a near-random-walk market, because many apparently
+strong models mainly reproduce the last observed price.  The feature-importance
+results in Section~\ref{tab:feat_imp} should therefore be read relative to this
+baseline rather than in isolation.
+
+Paired $t$-tests on absolute forecast errors were also conducted in the
+notebook to assess whether observed differences between the main ML and Hybrid
+specifications are statistically significant.  Because the exact $p$-values are
+reported in the computational notebook rather than reproduced here, the thesis
+uses these tests as a robustness check and avoids stronger claims than the
+available evidence supports.
+
 \subsection{Walk-Forward Cross-Validation Results}
 
 Table~\ref{tab:wf_results} reports fold-level MAE and the cross-validation
@@ -1523,7 +1557,10 @@ LSTM               & 371 & 408 & 381 & 402 & 356 & 384 & 20 \\
 
 The low standard deviation of fold-level MAE (16--21 USD) indicates stable
 out-of-sample performance.  The Hybrid SDE-ML model achieves the best mean
-MAE (356 USD) with comparable variability.
+MAE (356 USD) with comparable variability in this table, but the broader
+interpretation should remain cautious: on short-horizon Bitcoin forecasting,
+small differences between strong lag-based models may not always translate into
+statistically decisive improvements once paired error tests are applied.
 
 \section{Feature Importance Analysis}
 
@@ -1599,7 +1636,10 @@ limits drawdown to 3.7\,\%.
 The Hybrid SDE-ML model achieves the best risk-adjusted performance
 (Sharpe\,=\,1.72), a 42\,\% improvement over buy-and-hold (Sharpe\,=\,1.21).
 This demonstrates that the accuracy gains of the hybrid model translate into
-economically meaningful improvements in portfolio risk management.
+economically meaningful improvements in portfolio risk management within this
+stylised backtest.  The result should not be read as a claim of deployable
+trading profitability, and it should be considered together with the naive
+baseline and the statistical-significance checks discussed above.
 
 \section{Distributional Forecast Quality (SDE and Hybrid Models)}
 
@@ -1612,18 +1652,23 @@ Coverage probabilities of the simulated 90\,\% prediction interval:
   \item \textbf{SDE-ML Hybrid}: \textbf{91.7\,\%} (best overall coverage).
 \end{itemize}
 
-The Hybrid model achieves both the best point-prediction accuracy \emph{and}
-the best distributional coverage, demonstrating the complementary benefits of
-combining the ML and SDE approaches.
+The Hybrid model achieves the strongest distributional coverage among the models
+reported here.  This supports the main methodological argument of the thesis:
+even when a pure ML baseline is highly competitive on point accuracy, the
+hybrid framework remains valuable because it combines data-driven adaptivity
+with simulation-based distributional forecasts.
 
 \section{Comparative Analysis}
 
 \subsection{Predictive Accuracy}
 
-The Hybrid SDE-ML model achieves the lowest MAE (298.1 USD) and highest $R^2$
-(0.968) among all models, improving on the best pure ML model (LSTM, MAE\,=\,318.4)
-by 6.4\,\%.  The LSTM outperforms all other pure ML models, benefiting from its
-ability to capture temporal dependencies over the 20-bar lookback window.
+The empirical comparison should be read at two levels.  First, classical SDE
+specifications remain useful structural benchmarks, but they are less accurate
+than feature-based ML models on short-horizon point forecasting.  Second, the
+best-performing ML and Hybrid variants are relatively close to each other, so
+the main conclusion is not that one architecture universally dominates, but
+that the hybrid approach is competitive while preserving distributional
+interpretability that pure point-forecast models do not provide.
 
 \subsection{Computation and Scalability}
 
@@ -1662,7 +1707,9 @@ models), with the following principal findings.
     the Heston Stochastic Volatility model.
 
   \item \textbf{SDE calibration.}  All three SDE models were successfully
-    calibrated on daily Bitcoin data.  The Merton model best fits the empirical
+    calibrated, with the final Heston implementation estimated directly at the
+    15-minute frequency used in forecasting rather than via daily-to-intraday
+    rescaling.  The Merton model best fits the empirical
     return distribution (KS $p = 0.11$) and achieves closest-to-nominal
     prediction interval coverage (91.3\,\%).
 
