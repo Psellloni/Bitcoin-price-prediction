@@ -85,6 +85,7 @@ def simple_momentum_strategy(
         sharpe        : float      — annualised Sharpe ratio
         max_drawdown  : float      — maximum drawdown as fraction
         n_trades      : int        — number of position changes
+        turnover      : float      — total absolute position turnover
     """
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
@@ -114,6 +115,7 @@ def simple_momentum_strategy(
     sharpe = sharpe_ratio(strategy_returns)
     mdd = max_drawdown(equity)
     n_trades = int(np.sum(np.abs(signal_changes)))
+    turnover = float(np.sum(np.abs(signal_changes)))
 
     return {
         "equity_curve": equity,
@@ -123,6 +125,7 @@ def simple_momentum_strategy(
         "sharpe": sharpe,
         "max_drawdown": mdd,
         "n_trades": n_trades,
+        "turnover": turnover,
     }
 
 
@@ -146,6 +149,7 @@ def buy_and_hold(
         "sharpe": sharpe_ratio(price_returns),
         "max_drawdown": max_drawdown(equity),
         "n_trades": 1,
+        "turnover": 1.0,
     }
 
 
@@ -180,6 +184,8 @@ def compare_strategies(
             "Total Return (%)": round(bh["total_return"] * 100, 2),
             "Sharpe": round(bh["sharpe"], 3),
             "Max Drawdown (%)": round(bh["max_drawdown"] * 100, 2),
+            "Turnover": round(bh["turnover"], 3),
+            "Number of Trades": int(bh["n_trades"]),
             "PnL (USD)": round(bh["PnL"], 2),
         }
     )
@@ -192,6 +198,8 @@ def compare_strategies(
                 "Total Return (%)": round(res["total_return"] * 100, 2),
                 "Sharpe": round(res["sharpe"], 3),
                 "Max Drawdown (%)": round(res["max_drawdown"] * 100, 2),
+                "Turnover": round(res["turnover"], 3),
+                "Number of Trades": int(res["n_trades"]),
                 "PnL (USD)": round(res["PnL"], 2),
             }
         )

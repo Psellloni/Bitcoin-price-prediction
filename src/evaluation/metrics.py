@@ -24,6 +24,37 @@ def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, floa
     }
 
 
+def directional_accuracy(y_true: np.ndarray, y_pred: np.ndarray, reference: np.ndarray) -> dict[str, float]:
+    y_true = np.asarray(y_true, dtype=float).reshape(-1)
+    y_pred = np.asarray(y_pred, dtype=float).reshape(-1)
+    reference = np.asarray(reference, dtype=float).reshape(-1)
+
+    n = min(len(y_true), len(y_pred), len(reference))
+    if n == 0:
+        raise ValueError("inputs must be non-empty")
+
+    y_true = y_true[:n]
+    y_pred = y_pred[:n]
+    reference = reference[:n]
+
+    pred_up = (y_pred - reference) > 0
+    true_up = (y_true - reference) > 0
+
+    tp = int(np.sum(pred_up & true_up))
+    fp = int(np.sum(pred_up & ~true_up))
+    fn = int(np.sum(~pred_up & true_up))
+
+    da = float(np.mean(pred_up == true_up))
+    precision_long = float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0
+    recall_long = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+
+    return {
+        "Directional Accuracy": da,
+        "Precision Long": precision_long,
+        "Recall Long": recall_long,
+    }
+
+
 def metrics_frame(results: list[dict]) -> pd.DataFrame:
     if not results:
         return pd.DataFrame(columns=["model", "MAE", "RMSE", "R2"])
@@ -45,6 +76,20 @@ def naive_last_value_forecast(series: np.ndarray, horizon: int = 1) -> tuple[np.
 def naive_metrics(series: np.ndarray, horizon: int = 1, model_name: str = "Naive (last price)") -> dict[str, float | str]:
     y_true, y_pred = naive_last_value_forecast(series, horizon=horizon)
     return {"model": model_name, **regression_metrics(y_true, y_pred)}
+
+
+def naive_directional_metrics(
+    series: np.ndarray,
+    horizon: int = 1,
+    model_name: str = "Naive (last price)",
+) -> dict[str, float | str]:
+    series = np.asarray(series, dtype=float).reshape(-1)
+    y_true, y_pred = naive_last_value_forecast(series, horizon=horizon)
+    reference = series[:-horizon]
+    return {
+        "model": model_name,
+        **directional_accuracy(y_true, y_pred, reference),
+    }
 
 
 def paired_t_test_errors(
@@ -85,4 +130,25 @@ def paired_t_test_errors(
         "mean_loss_b": float(err_b.mean()),
         "t_stat": float(stat),
         "p_value": float(p_value),
+        "significant": bool(p_value < 0.05),
     }
+
+
+def paired_tests_table(
+    comparisons: list[tuple[str, np.ndarray, str, np.ndarray]],
+    y_true: np.ndarray,
+    loss: str = "absolute",
+) -> pd.DataFrame:
+    rows = []
+    for model_a, y_pred_a, model_b, y_pred_b in comparisons:
+        rows.append(
+            paired_t_test_errors(
+                y_true=y_true,
+                y_pred_a=y_pred_a,
+                y_pred_b=y_pred_b,
+                loss=loss,
+                model_a=model_a,
+                model_b=model_b,
+            )
+        )
+    return pd.DataFrame(rows)

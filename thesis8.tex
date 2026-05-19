@@ -178,7 +178,7 @@ Slabolitskiy~I.~S. & \underline{\hspace{3cm}} & \\
 This thesis investigates Bitcoin price prediction through two complementary
 lenses: classical stochastic differential equation (SDE) models from
 mathematical finance, and modern machine learning (ML) methods.  A key
-theoretical contribution is the rigorous justification of the stochastic
+theoretical contribution is the theoretical motivation for a stochastic
 process representation of cryptocurrency prices, grounded in the Efficient
 Market Hypothesis, the Random Walk Hypothesis, and the empirical stylised
 facts of Bitcoin log-returns (heavy tails, volatility clustering, jump events).
@@ -189,7 +189,7 @@ Volatility model.  Four ML models --- Elastic Net, Random Forest, Gradient
 Boosting, and Long Short-Term Memory (LSTM) networks --- are trained and
 evaluated on multi-resolution Bitcoin price data obtained from Yahoo Finance.
 
-As the primary \emph{novel contribution}, a \textbf{Hybrid SDE-ML model} is
+As the primary \emph{applied contribution}, a \textbf{Hybrid SDE-ML model} is
 proposed and implemented.  The hybrid model replaces the constant drift of GBM
 with a time-varying drift predicted at each step by a Gradient Boosting
 regressor, while retaining the stochastic diffusion term scaled by rolling
@@ -203,10 +203,11 @@ $R^2$), an \textbf{economic evaluation} is conducted via a simple
 momentum-driven trading strategy, reporting annualised Sharpe ratios and
 maximum drawdown.
 
-The empirical results show that feature-based ML models are very strong
-short-horizon baselines, while the Hybrid SDE-ML framework remains competitive
-and adds calibrated 90\,\% prediction intervals (coverage 91.7\,\%) together
-with an economically interpretable stochastic structure.
+The empirical results show that persistence and simple lag-based models are
+very strong short-horizon baselines. The Hybrid SDE-ML framework remains
+competitive in point forecasting and adds calibrated 90\,\% prediction
+intervals (coverage 91.7\,\%) together with an economically interpretable
+stochastic structure.
 
 \textbf{Keywords:} Bitcoin, cryptocurrency, stochastic differential equations,
 Geometric Brownian Motion, Merton model, Heston model, machine learning,
@@ -270,12 +271,12 @@ modelling problem may be stated as follows.
 \begin{itemize}[leftmargin=1.25cm]
   \item to provide a self-contained introduction to stochastic processes,
     It\^{o} calculus, and SDEs;
-  \item to rigorously justify the stochastic process representation of Bitcoin
+  \item to provide a theoretically motivated stochastic process representation of Bitcoin
     prices via propositions and proofs;
   \item to derive, calibrate, and evaluate three SDE models: GBM, Merton
     Jump-Diffusion, and Heston;
   \item to build, train, and evaluate four ML models including LSTM;
-  \item to propose and implement a novel \textbf{Hybrid SDE-ML model} with
+  \item to propose and implement a practically useful \textbf{Hybrid SDE-ML model} with
     time-varying ML-predicted drift;
   \item to conduct rigorous walk-forward cross-validation;
   \item to evaluate all models on an economic criterion (Sharpe ratio).
@@ -287,7 +288,7 @@ modelling problem may be stated as follows.
 Chapter~1 develops the mathematical foundations.
 Chapter~2 justifies the stochastic process framework for Bitcoin.
 Chapter~3 derives and analyses the three SDE models.
-Chapter~4 describes the ML models and the novel Hybrid SDE-ML model.
+Chapter~4 describes the ML models and the Hybrid SDE-ML model.
 Chapter~5 covers data, feature engineering, walk-forward validation, and
 evaluation protocols including economic metrics.
 Chapter~6 presents the experimental results.
@@ -493,8 +494,9 @@ that is $\mathbb{F}$-adapted and satisfies
 $\E\!\left[\sup_{0 \leq t \leq T} X_t^2\right] < \infty$.
 \end{theorem}
 
-We will verify conditions (C1)--(C2) for each of the three SDE models studied in
-Chapter~3.
+For GBM these conditions apply directly. For the Merton jump-diffusion and
+Heston square-root variance model, specialised existence and uniqueness results
+are required and are discussed separately.
 
 %% ============================================================
 %%  CHAPTER 2 — WHY BITCOIN PRICE IS STOCHASTIC
@@ -540,10 +542,12 @@ Three nested forms are commonly distinguished.
 
 \begin{proposition}[Stochastic Prices under the EMH]
 \label{prop:emh}
-Suppose the market for Bitcoin satisfies weak-form efficiency.  Then the price
-process $\{S_t\}$ is a Markov process, and the log-return process
-$\{r_t = \ln(S_t / S_{t-1})\}$ constitutes a sequence of random variables
-uncorrelated with any function of past prices.
+Suppose the market for Bitcoin satisfies weak-form efficiency.  Then excess
+returns are not predictable from past prices under the assumed information set,
+and the log-return process $\{r_t = \ln(S_t / S_{t-1})\}$ constitutes a sequence
+of random variables uncorrelated with any function of past prices.  A Markov
+representation may be obtained only after specifying an appropriate state
+vector, which may include volatility, liquidity, or latent regime variables.
 \end{proposition}
 
 \begin{proof}[Argument]
@@ -553,9 +557,12 @@ return.  Formally, if $\pi_t$ denotes the equilibrium expected return per period
 \[
   \E[S_{t+1} \mid S_0, \ldots, S_t] = (1 + \pi_t) S_t.
 \]
-This is the martingale (or supermartingale) property.  Since $S_{t+1}$ depends on
-past prices only through $S_t$, the process is Markov.  Any excess return
-$r_t - \pi_{t-1}$ is unpredictable from past information, hence random.
+This is the martingale (or supermartingale) property.  It implies that past
+prices do not provide a systematic forecasting advantage for excess returns
+under the assumed information set.  Any excess return $r_t - \pi_{t-1}$ is
+therefore unpredictable from past information, hence random.  A one-dimensional
+Markov representation for price itself would require additional state
+assumptions beyond weak-form EMH.
 \end{proof}
 
 \begin{remark}
@@ -752,11 +759,15 @@ $\int_0^T (\mu_s^2 + \sigma_s^2)\,ds < \infty$ a.s.
 
 \begin{proof}[Sketch of proof]
 Assumption (A1) implies that discounted prices are martingales under the physical
-measure (up to a risk premium).  By the Martingale Representation Theorem (see~[4]),
-any square-integrable martingale on a Brownian filtration admits the stochastic integral
-representation above.  Assumption (A2) ensures the filtration is generated by a
-Brownian motion rather than a Poisson or jump process.  Assumptions (A3)--(A4) ensure
-the coefficients are well-defined and the integral converges.
+measure (up to a risk premium).  Under the additional assumption that the
+information filtration is Brownian and the martingale component is
+square-integrable, the Martingale Representation Theorem (see~[4]) motivates
+the stochastic integral representation above.  Assumption (A2) rules out jump
+arrivals and supports a continuous Brownian filtration rather than a Poisson or
+general discontinuous one.  Assumptions (A3)--(A4) ensure that the coefficients
+are well-defined and the integral converges.  The argument should therefore be
+read as a heuristic justification for an It\^{o} process representation rather
+than as a consequence of EMH alone.
 \end{proof}
 
 \begin{remark}
@@ -1023,6 +1034,16 @@ In our calibration procedure, we enforce it as a soft constraint by capping
 $\xi$ at $0.9\sqrt{2\kappa\theta}$.
 \end{remark}
 
+\begin{remark}
+The CIR variance process does not satisfy the global Lipschitz condition
+because the square-root diffusion coefficient is non-smooth at zero.
+Accordingly, existence and uniqueness for the Heston variance process follow
+from specialised results for square-root diffusions under non-negativity
+conditions, rather than directly from general global-Lipschitz theorems.
+The Feller condition is relevant for strict positivity, but it is not itself a
+global Lipschitz condition.
+\end{remark}
+
 \begin{proposition}[Conditional Moments of the CIR Process]
 \label{prop:cir_moments}
 For the CIR process with $v_0 > 0$, the conditional mean and variance at time $t$ are:
@@ -1095,6 +1116,14 @@ is sufficient to demonstrate the model's qualitative behaviour.
 The ML prediction problem is a supervised regression task: given feature
 vector $\mathbf{x}_t \in \R^p$, predict $y_{t+h} = S_{t+h}$.  All models
 minimise an empirical squared-error loss.
+
+In the main experiment, the target variable is therefore the future \emph{price
+level} $S_{t+h}$ rather than the future return.  The forecasting horizon is
+$h = 10$ bars, corresponding to 150 minutes on the 15-minute series.  An
+alternative target not used in the primary specification is the log-return
+$r_{t,t+h} = \ln(S_{t+h}/S_t)$.  Because the target is the future price level,
+high $R^2$ values should be interpreted cautiously: a substantial part of the
+apparent explanatory power may come from price persistence.
 
 \section{Elastic Net Regression}
 
@@ -1255,14 +1284,16 @@ log-return from the following features:
 
 \subsection{Relationship to Neural SDEs}
 
-The Hybrid SDE-ML model is a specific instance of the Neural SDE family~[14],
-in which the drift function $b(t, S_t)$ is replaced by a non-parametric
-machine learning approximator trained on data.  Unlike full Neural SDEs, which
-parameterise both drift and diffusion as neural networks, our approach uses a
-simpler gradient boosting regressor for the drift and an analytic realised
-variance estimator for the diffusion.  This provides interpretable feature
-importances for the drift component (Table~\ref{tab:feat_imp}) while
-retaining the theoretical guarantees of GBM for the diffusion term.
+The Hybrid SDE-ML model is conceptually related to Neural SDEs~[14], since a
+component of the SDE dynamics is parameterised by a data-driven function
+approximator. However, it is not a full Neural SDE framework: the drift and
+diffusion are not jointly learned as continuous-time neural networks, and the
+model is not trained via likelihood-based or pathwise Neural SDE objectives.
+Instead, our approach uses a gradient boosting regressor for the drift and an
+analytic realised-variance estimator for the diffusion. This provides
+interpretable feature importances for the drift component
+(Table~\ref{tab:feat_imp}) while retaining the theoretical guarantees of GBM
+for the diffusion term.
 
 %% ============================================================
 %%  CHAPTER 5 — METHODOLOGY AND DATA
@@ -1333,6 +1364,12 @@ feature set.  It therefore provides a practical middle ground between very
 short-horizon microstructure noise and much longer horizons where the current
 intraday covariates become less informative.
 
+At forecast origin $t$, all features are constructed from information available
+at the close of bar $t$.  In particular, $H_t$, $L_t$, $S_t$, and $V_t$ are used
+only as end-of-bar quantities, so the specification does not assume intrabar
+knowledge when forming the prediction.  This timing convention is important for
+avoiding look-ahead bias in the intraday setting.
+
 \begin{itemize}[leftmargin=1.25cm]
   \item \textbf{Price lags:} $S_t, S_{t-1}, \ldots, S_{t-9}$ (10 lags).
   \item \textbf{Volume lags:} $V_t, \ldots, V_{t-4}$ (5 lags).
@@ -1348,6 +1385,11 @@ intraday covariates become less informative.
 The LSTM and Hybrid models use the same features; the Hybrid's drift predictor
 additionally uses lagged log-returns and the rolling realised volatility as
 described in Section~\ref{sec:hybrid}.
+
+For the LSTM specifically, scaling is fit on the training portion of each fold
+only, the validation split is taken only from the training fold, and the test
+fold is never used for early stopping.  This protocol is designed to minimise
+data leakage in the sequential setting.
 
 This asymmetry should be interpreted carefully.  The SDE models are structural
 benchmarks and are intentionally calibrated from the price process alone,
@@ -1499,68 +1541,79 @@ held-out test set (15-minute data, $h = 10$ steps ahead).
 \toprule
 Model & MAE (USD) & RMSE (USD) & $R^2$ & Sharpe \\
 \midrule
-Elastic Net             & 337.6  & 491.5  & 0.963 & 1.47 \\
-Random Forest           & 392.9  & 542.5  & 0.954 & 1.38 \\
-Gradient Boosting       & 351.5  & 502.0  & 0.961 & 1.52 \\
-LSTM                    & 318.4  & 463.7  & 0.966 & 1.61 \\
-\textbf{SDE-ML Hybrid}  & \textbf{298.1} & \textbf{441.2} & \textbf{0.968} & \textbf{1.72} \\
+Elastic Net             & 291.2  & 418.7  & 0.91 & -24.68 \\
+Random Forest           & 352.5  & 481.3  & 0.88 & --- \\
+Gradient Boosting       & 351.6  & 482.3  & 0.88 & -24.09 \\
+\textbf{SDE-ML Hybrid}  & \textbf{288.1} & \textbf{414.7} & \textbf{0.91} & \textbf{-9.98} \\
+Naive persistence ($\hat S_{t+h} = S_t$) & 397.2 & 564.0 & 0.84 & -17.76 \\
 \midrule
-GBM (SDE)               & 1\,214.3 & 1\,687.2 & 0.704 & 0.89 \\
-Merton Jump-Diff.\ (SDE) & 1\,189.7 & 1\,653.8 & 0.717 & 0.94 \\
-Heston (SDE)            & 1\,201.5 & 1\,670.1 & 0.710 & 0.91 \\
+GBM (SDE)               & 290.9 & 417.3 & 0.91 & --- \\
+Merton Jump-Diff.\ (SDE) & 288.8 & 414.7 & 0.91 & --- \\
+Heston (SDE)            & 294.7 & 421.5 & 0.91 & --- \\
 \midrule
-Buy \& Hold             & ---    & ---    & ---   & 1.21 \\
+Buy \& Hold             & ---    & ---    & ---   & -5.23 \\
 \bottomrule
 \end{tabular}
 \end{singlespace}
 \end{table}
 
-For interpretation, a naive persistence benchmark is also computed in the
-experimental notebook: the forecast simply sets $\hat S_{t+h} = S_t$.  This is
-an important reference in a near-random-walk market, because many apparently
-strong models mainly reproduce the last observed price.  The feature-importance
-results in Section~\ref{tab:feat_imp} should therefore be read relative to this
-baseline rather than in isolation.
+Since Bitcoin prices are highly persistent, all ML and Hybrid models are also
+compared against a naive persistence-style baseline in the notebook.  In the
+final rerun, this baseline attains MAE\,=\,397.2 and RMSE\,=\,564.0, which is
+materially worse than both the best Hybrid model (MAE\,=\,288.1) and the best
+tabular ML model (Elastic Net, MAE\,=\,291.2).  At the same time, this
+comparison should be interpreted cautiously: the current notebook implementation
+of the baseline needs to be kept fully aligned with the intended definition of a
+last-value persistence forecast before strong methodological claims are made.
 
 Paired $t$-tests on absolute forecast errors were also conducted in the
 notebook to assess whether observed differences between the main ML and Hybrid
-specifications are statistically significant.  Because the exact $p$-values are
-reported in the computational notebook rather than reproduced here, the thesis
-uses these tests as a robustness check and avoids stronger claims than the
-available evidence supports.
+specifications are statistically significant.  In the final single-split
+experiment, the Hybrid Gradient-Boosting variant significantly outperforms both
+the pure Gradient Boosting regressor ($t = -22.58$, $p < 0.001$) and the naive
+persistence baseline ($t = -19.22$, $p < 0.001$).  These tests are used as a
+robustness check only; because forecast errors may be serially correlated, the
+results should be interpreted more cautiously than a fully robust
+forecast-comparison test such as Diebold--Mariano.
 
 \subsection{Walk-Forward Cross-Validation Results}
 
-Table~\ref{tab:wf_results} reports fold-level MAE and the cross-validation
-mean\,±\,standard deviation across the five folds.  Compared to the single
-split, all models show modestly higher MAE (as expected for a more rigorous
-out-of-sample protocol), and the relative ranking is preserved.
+Table~\ref{tab:wf_results} reports the cross-validation mean and standard
+deviation of MAE across the five expanding-window folds.  Compared to the
+single split, the ranking changes materially, which highlights the importance of
+time-ordered re-estimation rather than relying on a single chronological split.
 
 \begin{table}[H]
 \begin{singlespace}
 \fontsize{10}{11}\selectfont
-\caption{Walk-forward cross-validation: MAE per fold (USD, 15-minute data)}
+\caption{Walk-forward cross-validation: MAE summary (USD, 15-minute data)}
 \label{tab:wf_results}
-\begin{tabular}{@{}lrrrrrrr@{}}
+\begin{tabular}{@{}lrr@{}}
 \toprule
-Model & Fold 1 & Fold 2 & Fold 3 & Fold 4 & Fold 5 & Mean & Std \\
+Model & Mean MAE & Std MAE \\
 \midrule
-Elastic Net        & 389 & 421 & 398 & 412 & 368 & 398 & 19 \\
-Random Forest      & 447 & 489 & 461 & 478 & 432 & 461 & 21 \\
-Gradient Boosting  & 412 & 438 & 419 & 431 & 396 & 419 & 16 \\
-LSTM               & 371 & 408 & 381 & 402 & 356 & 384 & 20 \\
-\textbf{SDE-ML Hybrid} & \textbf{342} & \textbf{378} & \textbf{359} & \textbf{371} & \textbf{328} & \textbf{356} & \textbf{19} \\
+Naive persistence & 326 & 51 \\
+Hybrid (GB drift)  & 329 & 52 \\
+Hybrid (EN drift)  & 329 & 52 \\
+Hybrid (RF drift)  & 329 & 52 \\
+Elastic Net        & 332 & 57 \\
+Gradient Boosting  & 1\,097 & 749 \\
+Random Forest      & 1\,153 & 715 \\
 \bottomrule
 \end{tabular}
 \end{singlespace}
 \end{table}
 
-The low standard deviation of fold-level MAE (16--21 USD) indicates stable
-out-of-sample performance.  The Hybrid SDE-ML model achieves the best mean
-MAE (356 USD) with comparable variability in this table, but the broader
-interpretation should remain cautious: on short-horizon Bitcoin forecasting,
-small differences between strong lag-based models may not always translate into
-statistically decisive improvements once paired error tests are applied.
+The walk-forward results remain informative but materially change the ranking
+observed under the single split.  The naive persistence benchmark achieves the
+lowest mean MAE (326 USD), while all three Hybrid variants cluster very closely
+behind it at approximately 329 USD.  Elastic Net remains competitive
+(332 USD), whereas the pure Gradient Boosting and Random Forest regressors
+degrade substantially under expanding-window evaluation.  This pattern suggests
+that on short-horizon intraday Bitcoin forecasting, persistence is a very hard
+baseline to beat consistently across time, and the main value of the Hybrid
+approach lies in remaining competitive while preserving a stochastic
+distributional interpretation.
 
 \section{Feature Importance Analysis}
 
@@ -1605,41 +1658,46 @@ predictive information beyond a simple last-value baseline.
 Table~\ref{tab:econ_results} presents the economic performance of the momentum
 strategy across all models, benchmarked against buy-and-hold.
 
+The backtest is intentionally stylised.  Signals are formed at the close of bar
+$t$ using information available at that time, and the resulting position is
+evaluated over the subsequent forecast horizon.  The comparison is therefore
+useful for relative model ranking, but it is not a full market-microstructure
+simulation with transaction-cost sensitivity, order-book dynamics, or execution
+delay modelling.
+
 \begin{table}[H]
 \begin{singlespace}
 \fontsize{10}{11}\selectfont
 \caption{Economic performance: momentum strategy (15-minute test set)}
 \label{tab:econ_results}
-\begin{tabular}{@{}lrrrr@{}}
+\begin{tabular}{@{}lrrrrrr@{}}
 \toprule
-Strategy & Total Return (\%) & Sharpe & Max DD (\%) & PnL (USD) \\
+Strategy & Total Return (\%) & Sharpe & Max DD (\%) & Turnover & Trades & PnL (USD) \\
 \midrule
-Buy \& Hold              & $+4.2$ & 1.21 & $-8.7$ &  $+420$ \\
-Elastic Net              & $+3.1$ & 1.34 & $-5.2$ &  $+310$ \\
-Random Forest            & $+2.8$ & 1.28 & $-5.9$ &  $+280$ \\
-Gradient Boosting        & $+3.4$ & 1.47 & $-4.8$ &  $+340$ \\
-LSTM                     & $+3.6$ & 1.58 & $-4.1$ &  $+360$ \\
-\textbf{SDE-ML Hybrid}   & $\mathbf{+3.9}$ & $\mathbf{1.72}$ & $\mathbf{-3.7}$ & $\mathbf{+390}$ \\
+Buy \& Hold              & $-4.83$ & -5.23 & $-7.70$ & 1.00 & 1 & $-483.00$ \\
+Elastic Net              & $-16.93$ & -24.68 & --- & --- & --- & $-1\,693.00$ \\
+Gradient Boosting        & $-16.06$ & -24.09 & --- & --- & --- & $-1\,606.00$ \\
+Naive persistence        & $-12.34$ & -17.76 & --- & --- & --- & $-1\,234.00$ \\
+\textbf{SDE-ML Hybrid}   & $\mathbf{-7.22}$ & $\mathbf{-9.98}$ & --- & --- & --- & $\mathbf{-722.00}$ \\
 \bottomrule
 \end{tabular}
 \end{singlespace}
 \end{table}
 
 \paragraph{Discussion.}
-All ML strategies show a lower absolute return than buy-and-hold (4.2\,\% vs.\
-3.1\,--\,3.9\,\%), reflecting the cost of being flat during positive price moves
-that were not predicted.  However, all ML strategies achieve \emph{higher
-Sharpe ratios} and substantially smaller maximum drawdowns.  The buy-and-hold
-strategy suffers a maximum drawdown of 8.7\,\%, while the Hybrid SDE-ML model
-limits drawdown to 3.7\,\%.
+In the final rerun of the notebook, the stylised momentum backtest is negative
+for all reported strategies, including buy-and-hold.  The Hybrid SDE-ML model
+still performs best among the predictive strategies in relative terms, with
+total return $-7.22\,\%$ versus $-12.34\,\%$ for naive persistence,
+$-16.06\,\%$ for Gradient Boosting, and $-16.93\,\%$ for Elastic Net.  Its
+Sharpe ratio remains the least negative among the model-driven strategies
+reported here (Hybrid: $-9.98$; Naive: $-17.76$; Elastic Net: $-24.68$;
+Gradient Boosting: $-24.09$), although buy-and-hold remains better at $-5.23$.
 
-The Hybrid SDE-ML model achieves the best risk-adjusted performance
-(Sharpe\,=\,1.72), a 42\,\% improvement over buy-and-hold (Sharpe\,=\,1.21).
-This demonstrates that the accuracy gains of the hybrid model translate into
-economically meaningful improvements in portfolio risk management within this
-stylised backtest.  The result should not be read as a claim of deployable
-trading profitability, and it should be considered together with the naive
-baseline and the statistical-significance checks discussed above.
+These results reinforce the need for caution: statistical improvements in price
+prediction do not automatically translate into profitable trading performance,
+especially under a stylised long-only decision rule over a short intraday
+sample.
 
 \section{Distributional Forecast Quality (SDE and Hybrid Models)}
 
@@ -1699,9 +1757,9 @@ perspectives of mathematical finance (SDE models) and data science (ML
 models), with the following principal findings.
 
 \begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
-  \item \textbf{Theoretical justification.}  Via a series of propositions, we
-    established that Bitcoin prices admit a stochastic process representation
-    under the Efficient Market Hypothesis, and that the observed stylised
+  \item \textbf{Theoretical motivation.}  Via a series of propositions, we
+    motivated a stochastic process representation for Bitcoin prices under
+    additional modelling assumptions, and showed that the observed stylised
     facts (heavy tails, volatility clustering, structural breaks) motivate
     progressive extensions beyond GBM: the Merton Jump-Diffusion model and
     the Heston Stochastic Volatility model.
@@ -1719,11 +1777,13 @@ models), with the following principal findings.
     that short-horizon Bitcoin prediction is highly sensitive to feature timing,
     horizon definition, and evaluation protocol.
 
-  \item \textbf{Walk-forward validation.}  The walk-forward results confirm
-    that the relative model ranking is robust across different time periods
-    (standard deviations of fold-level MAE: 16--21 USD), and are
-    approximately 15--20\,\% higher in absolute terms than single-split
-    estimates, as expected for a more conservative evaluation protocol.
+  \item \textbf{Walk-forward validation.}  The walk-forward results show that
+    persistence is the strongest baseline under expanding-window evaluation
+    (mean MAE 326 USD), while all three Hybrid variants remain very close at
+    approximately 329 USD.  Elastic Net follows at 332 USD, whereas the pure
+    tree-based tabular models deteriorate sharply.  This confirms that the
+    single-split ranking is not fully stable across time and that persistence
+    must be treated as a primary benchmark rather than a cosmetic reference.
 
   \item \textbf{Hybrid SDE+ML models provide a meaningful methodological
     bridge.}  The implemented hybrid family combines a stochastic-process view
@@ -1761,7 +1821,39 @@ models and flexible data-driven models can be combined.  This framing is more
 accurate and more defensible than the stronger claim that one hybrid variant
 must dominate all baselines under every metric and every split.
 
-\section*{Limitations and Future Work}
+\section*{Limitations}
+
+The study has several important limitations.  First, the intraday sample is
+short because Yahoo Finance retains only a limited history for 15-minute data.
+Second, the primary target is the future price level rather than the future
+return, so high $R^2$ values may overstate genuine predictability because of
+price persistence.  Third, the comparison is not information-set equivalent:
+the SDE models are calibrated only from the return process, whereas the ML and
+Hybrid models use a richer feature set including price lags, volume, high/low,
+and technical indicators.  The empirical results should therefore be interpreted
+as a comparison of modelling paradigms under their natural inputs rather than as
+a fully controlled model-class comparison.  Fourth, the economic backtest is
+stylised and does not model the full range of market frictions, execution
+timing, or transaction-cost sensitivity.  Fifth, the Heston calibration is
+moment-based rather than likelihood-based.  Finally, the proposed Hybrid model
+is related to Neural SDEs only conceptually and is not methodologically
+equivalent to a full neural SDE framework.  All findings are specific to
+Bitcoin and to the chosen sample period.
+
+\section*{Reproducibility}
+
+The empirical pipeline is implemented in Python using standard scientific and
+machine-learning libraries, including \texttt{numpy}, \texttt{pandas},
+\texttt{scikit-learn}, \texttt{tensorflow/keras}, \texttt{scipy}, and
+\texttt{yfinance}.  Data were downloaded from Yahoo Finance and evaluated using
+chronological train-test splits together with five-fold expanding-window
+walk-forward validation on the 15-minute series.  Where stochastic training is
+involved, fixed random seeds should be used to improve reproducibility.  The
+main model hyperparameters, forecasting horizon, and fold structure are reported
+in Chapters~4--6 so that the experiments can be replicated from the attached
+code and notebook workflow.
+
+\section*{Future Work}
 
 \begin{enumerate}[leftmargin=1.25cm, label=\arabic*.]
   \item \textbf{Regime-switching SDE.}  A Markov-switching SDE would better

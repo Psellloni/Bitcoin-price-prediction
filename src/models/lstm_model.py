@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import matplotlib.pyplot as plt
+import tensorflow as tf
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
@@ -38,6 +39,9 @@ class LSTMModel:
         learning_rate: float = 0.001,
         epochs: int = 30,
         batch_size: int = 32,
+        random_state: int = 42,
+        validation_split: float = 0.1,
+        verbose: int = 1,
     ):
         self.model_name = "LSTM"
         self.seq_len = seq_len
@@ -46,6 +50,9 @@ class LSTMModel:
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.batch_size = batch_size
+        self.random_state = random_state
+        self.validation_split = validation_split
+        self.verbose = verbose
 
         self.is_fitted = False
         self.history = None
@@ -53,6 +60,10 @@ class LSTMModel:
         self.scaler_X = MinMaxScaler()
         self.scaler_y = MinMaxScaler()
         self.model = None  # built lazily after n_features is known
+
+    def _set_random_seed(self):
+        np.random.seed(self.random_state)
+        tf.random.set_seed(self.random_state)
 
     # ------------------------------------------------------------------
     # Sequence construction
@@ -113,6 +124,8 @@ class LSTMModel:
         X_val: np.ndarray | None = None,
         y_val: np.ndarray | None = None,
     ) -> "LSTMModel":
+        self._set_random_seed()
+
         X_train = np.asarray(X_train, dtype=np.float32)
         y_train = np.asarray(y_train, dtype=np.float32).reshape(-1, 1)
 
@@ -140,6 +153,14 @@ class LSTMModel:
                 X_val_sc, y_val_sc, self.seq_len
             )
             validation_data = (X_val_seq, y_val_seq)
+        elif self.validation_split > 0.0:
+            split_idx = int(len(X_seq) * (1.0 - self.validation_split))
+            split_idx = max(split_idx, 1)
+            split_idx = min(split_idx, len(X_seq) - 1) if len(X_seq) > 1 else len(X_seq)
+            if 0 < split_idx < len(X_seq):
+                validation_data = (X_seq[split_idx:], y_seq[split_idx:])
+                X_seq = X_seq[:split_idx]
+                y_seq = y_seq[:split_idx]
 
         self.history = self.model.fit(
             X_seq,
@@ -147,8 +168,9 @@ class LSTMModel:
             validation_data=validation_data,
             epochs=self.epochs,
             batch_size=self.batch_size,
-            verbose=1,
+            verbose=self.verbose,
             callbacks=callbacks,
+            shuffle=False,
         )
 
         self.is_fitted = True
